@@ -1,0 +1,39 @@
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - data-mysql:/var/lib/mysql
+    networks:
+      - appbito-net
+
+  appbito-backend:
+    container_name: appbito-backend
+    image: jmramglez/appbito-backend
+    ports:
+      - "8001:8001"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - appbito-net
+    depends_on:
+      - mysql
+    restart: always
+  
+volumes:
+  data-mysql:
+    name: data-mysql
+
+networks:
+  appbito-net:
+    name: appbito-net
