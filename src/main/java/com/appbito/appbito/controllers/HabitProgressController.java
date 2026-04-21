@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.appbito.appbito.entities.HabitProgressDTO;
-import com.appbito.appbito.entities.HabitProgressMonthlyDTO;
+import com.appbito.appbito.dtos.HabitProgressDTO;
+import com.appbito.appbito.dtos.HabitProgressMonthlyDTO;
 import com.appbito.appbito.services.HabitProgressService;
 
 import jakarta.validation.Valid;

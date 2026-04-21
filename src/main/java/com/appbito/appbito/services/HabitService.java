@@ -3,7 +3,7 @@ package com.appbito.appbito.services;
 import java.util.List;
 import java.util.Optional;
 
-import com.appbito.appbito.entities.HabitDTO;
+import com.appbito.appbito.dtos.HabitDTO;
 
 public interface HabitService {
     List<HabitDTO> findAll();

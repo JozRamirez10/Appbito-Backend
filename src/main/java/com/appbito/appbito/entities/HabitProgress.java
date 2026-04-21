@@ -13,9 +13,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "habit_progress")
+@Getter
+@Setter
+@NoArgsConstructor
 public class HabitProgress {
 
     @Id
@@ -33,48 +39,5 @@ public class HabitProgress {
     @JoinColumn(name = "habit_id", nullable = false)
     @JsonIgnore
     private Habit habit;
-
-    public HabitProgress() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getTimesPerformed() {
-        return timesPerformed;
-    }
-
-    public void setTimesPerformed(Long timesPerformed) {
-        this.timesPerformed = timesPerformed;
-    }
-
-    public String getNote() {
-        return note;
-    }
-
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    public Habit getHabit() {
-        return habit;
-    }
-
-    public void setHabit(Habit habit) {
-        this.habit = habit;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
 
 }

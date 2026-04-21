@@ -18,11 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.appbito.appbito.dtos.HabitProgressDTO;
+import com.appbito.appbito.dtos.HabitProgressMonthlyDTO;
 import com.appbito.appbito.entities.Day;
 import com.appbito.appbito.entities.Habit;
 import com.appbito.appbito.entities.HabitProgress;
-import com.appbito.appbito.entities.HabitProgressDTO;
-import com.appbito.appbito.entities.HabitProgressMonthlyDTO;
 import com.appbito.appbito.repositories.HabitProgressRepository;
 import com.appbito.appbito.repositories.HabitRepository;
 
@@ -186,15 +186,14 @@ public class HabitProgressServiceImp implements HabitProgressService{
     }
 
     private HabitProgressDTO habitProgressToHabitProgressDTO(HabitProgress habitProgress){
-        HabitProgressDTO habitProgressDTO = new HabitProgressDTO();
 
-        habitProgressDTO.setId(habitProgress.getId());
-        
-        habitProgressDTO.setDate(habitProgress.getDate().toString());
-
-        habitProgressDTO.setTimesPerformed(habitProgress.getTimesPerformed());
-        habitProgressDTO.setNote(habitProgress.getNote());
-        habitProgressDTO.setHabitId(habitProgress.getHabit().getId());
+        HabitProgressDTO habitProgressDTO = HabitProgressDTO.builder()
+            .id(habitProgress.getId())
+            .date(habitProgress.getDate().toString())
+            .timesPerformed(habitProgress.getTimesPerformed())
+            .note(habitProgress.getNote())
+            .habitId(habitProgress.getHabit().getId())
+            .build();
 
         return habitProgressDTO;
     }

@@ -22,9 +22,13 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "habit")
+@Getter
+@Setter
 public class Habit {
     
     @Id
@@ -64,69 +68,5 @@ public class Habit {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public LocalTime getHour() {
-        return hour;
-    }
-
-    public void setHour(LocalTime hour) {
-        this.hour = hour;
-    }
-
-    public List<Day> getDays() {
-        return days;
-    }
-
-    public void setDays(List<Day> days) {
-        this.days = days;
-    } 
-
-    public List<Date> getProgress() {
-        return progress;
-    }
-
-    public void setProgress(List<Date> progress) {
-        this.progress = progress;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public List<HabitProgress> getHabitProgress() {
-        return habitProgress;
-    }
-
-    public void setHabitProgress(List<HabitProgress> habitProgress) {
-        this.habitProgress = habitProgress;
-    }
     
 }

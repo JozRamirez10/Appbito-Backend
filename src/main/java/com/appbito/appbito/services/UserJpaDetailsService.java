@@ -7,8 +7,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.appbito.appbito.entities.CustomUserDetails;
-import com.appbito.appbito.entities.UserCredentialsDTO;
+import com.appbito.appbito.dtos.CustomUserDetails;
+import com.appbito.appbito.dtos.UserCredentialsDTO;
 import com.appbito.appbito.repositories.UserRepository;
 
 @Service

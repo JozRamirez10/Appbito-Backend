@@ -9,8 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.appbito.appbito.dtos.UserDTO;
 import com.appbito.appbito.entities.User;
-import com.appbito.appbito.entities.UserDTO;
 import com.appbito.appbito.repositories.UserRepository;
 
 @Service
@@ -151,14 +151,14 @@ public class UserServiceImp implements UserService{
     }
 
     private UserDTO userToUserDTO(User user){
-        UserDTO userDTO = new UserDTO();
-        
-        userDTO.setId(user.getId());
-        userDTO.setName(user.getName());
-        userDTO.setLastname(user.getLastname());
-        userDTO.setDate(user.getDate());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setImage(user.getImage());
+        UserDTO userDTO = UserDTO.builder()
+            .id(user.getId())
+            .name(user.getName())
+            .lastname(user.getLastname())
+            .date(user.getDate())
+            .email(user.getEmail())
+            .image(user.getImage())
+            .build();
         
         return userDTO;
     }
