@@ -35,9 +35,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.appbito.appbito.entities.UpdatePasswordRequest;
+import com.appbito.appbito.dtos.UpdatePasswordRequest;
+import com.appbito.appbito.dtos.UserDTO;
 import com.appbito.appbito.entities.User;
-import com.appbito.appbito.entities.UserDTO;
 import com.appbito.appbito.services.UserService;
 
 import jakarta.validation.Valid;

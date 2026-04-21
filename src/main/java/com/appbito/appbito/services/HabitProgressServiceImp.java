@@ -18,11 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.appbito.appbito.dtos.HabitProgressDTO;
+import com.appbito.appbito.dtos.HabitProgressMonthlyDTO;
 import com.appbito.appbito.entities.Day;
 import com.appbito.appbito.entities.Habit;
 import com.appbito.appbito.entities.HabitProgress;
-import com.appbito.appbito.entities.HabitProgressDTO;
-import com.appbito.appbito.entities.HabitProgressMonthlyDTO;
 import com.appbito.appbito.repositories.HabitProgressRepository;
 import com.appbito.appbito.repositories.HabitRepository;
 

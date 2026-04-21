@@ -9,8 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.appbito.appbito.dtos.UserDTO;
 import com.appbito.appbito.entities.User;
-import com.appbito.appbito.entities.UserDTO;
 import com.appbito.appbito.repositories.UserRepository;
 
 @Service

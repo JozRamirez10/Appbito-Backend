@@ -3,8 +3,8 @@ package com.appbito.appbito.services;
 import java.util.List;
 import java.util.Optional;
 
+import com.appbito.appbito.dtos.UserDTO;
 import com.appbito.appbito.entities.User;
-import com.appbito.appbito.entities.UserDTO;
 
 public interface UserService {
     List<User> findAll();

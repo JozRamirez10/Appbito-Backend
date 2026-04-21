@@ -4,8 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import com.appbito.appbito.entities.HabitProgressDTO;
-import com.appbito.appbito.entities.HabitProgressMonthlyDTO;
+import com.appbito.appbito.dtos.HabitProgressDTO;
+import com.appbito.appbito.dtos.HabitProgressMonthlyDTO;
 
 public interface HabitProgressService {
     List<HabitProgressDTO> findByHabitId(Long idHabit);
