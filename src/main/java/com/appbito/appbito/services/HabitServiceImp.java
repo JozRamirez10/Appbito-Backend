@@ -161,11 +161,14 @@ public class HabitServiceImp implements HabitService{
     }
 
     private HabitDTO habitToHabitDTO(Habit habit){
-        HabitDTO habitDTO = new HabitDTO();
-        habitDTO.setId(habit.getId());
-        habitDTO.setName(habit.getName());
-        habitDTO.setDescription(habit.getDescription());
-        habitDTO.setHour(habit.getHour());
+
+        HabitDTO habitDTO = HabitDTO.builder()
+            .id(habit.getId())
+            .name(habit.getName())
+            .description(habit.getDescription())
+            .hour(habit.getHour())
+            .userId(habit.getUser().getId())
+            .build();
         
         habitDTO.setDays(
             habit.getDays().stream()
@@ -180,8 +183,6 @@ public class HabitServiceImp implements HabitService{
             habitDTO.setProgress(progresStrings);
         }
 
-        habitDTO.setUserId(habit.getUser().getId());
-        
         return habitDTO;
     }
 
