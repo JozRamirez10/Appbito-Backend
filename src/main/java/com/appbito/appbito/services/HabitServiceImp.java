@@ -155,36 +155,4 @@ public class HabitServiceImp implements HabitService{
             () -> new RuntimeException("User not found with id: " + habitDTO.getUserId())
         );
     }
-
-    /* Habit Progress */
-
-    @Override
-    @Transactional
-    public List<HabitDTO> migrateProgressData() {
-        List<Habit> habits = (List<Habit>) repository.findAll();
-
-        for (Habit habit : habits) {
-            if(habit.getProgress() != null){
-
-                List<HabitProgress> newProgressesList = new ArrayList<>();
-
-                for (Date oldProgressDate : habit.getProgress()) {
-                    HabitProgress progress = new HabitProgress();
-                    progress.setHabit(habit);
-                    progress.setDate(oldProgressDate);
-                    progress.setTimesPerformed(1L);
-                    progress.setNote(null);
-
-                    newProgressesList.add(progress);
-                }
-
-                habit.getHabitProgress().clear();
-                habit.getHabitProgress().addAll(newProgressesList);
-            }
-        }
-
-        repository.saveAll(habits);
-
-        return listHabitToListHabitDTO(habits);
-    }
 }

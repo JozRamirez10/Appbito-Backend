@@ -121,11 +121,6 @@ public class HabitController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/migrate")
-    public List<HabitDTO> migrate(){
-        return this.service.migrateProgressData();
-    }
-
     private ResponseEntity<?> validation(BindingResult result){
         Map<String, String> errors = new HashMap<>();
         result.getFieldErrors().forEach(error -> {

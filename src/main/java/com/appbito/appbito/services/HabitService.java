@@ -16,5 +16,4 @@ public interface HabitService {
     List<HabitDTO> findByUserId(Long id);  
     List<HabitDTO> updateBatch(List<HabitDTO> habits);
 
-    List<HabitDTO> migrateProgressData();
 }
