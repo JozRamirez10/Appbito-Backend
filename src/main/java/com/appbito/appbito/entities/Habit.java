@@ -1,22 +1,26 @@
 package com.appbito.appbito.entities;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -44,16 +48,14 @@ public class Habit {
     private LocalTime hour;
 
     @NotEmpty(message = "Days is requireds")
-    @ManyToMany
-    @JoinTable(
-        name = "habit_days", // intermediate table
-        joinColumns = @JoinColumn(name = "habit_id"), // foreign key Habit
-        inverseJoinColumns = @JoinColumn(name = "day_id") // foreign key Day
+    @ElementCollection(targetClass = DayOfWeek.class, fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "habit_days",
+        joinColumns = @JoinColumn(name = "habit_id")
     )
-    private List<Day> days;
-
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-    private List<Date> progress;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "day_name")
+    private Set<DayOfWeek> days;
 
     @OneToMany(
         fetch = FetchType.LAZY,

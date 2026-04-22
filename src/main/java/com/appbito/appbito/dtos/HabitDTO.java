@@ -1,7 +1,9 @@
 package com.appbito.appbito.dtos;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -30,10 +32,7 @@ public class HabitDTO {
     private LocalTime hour;
 
     @NotEmpty(message = "Days are required")
-    private List<String> days;
-
-    @JsonIgnore
-    private List<String> progress;
+    private Set<DayOfWeek> days;
 
     @JsonIgnore
     private List<HabitProgressDTO> habitProgress;
