@@ -30,6 +30,11 @@ buildNumber.properties
 .env*
 !.env.example
 
+# ==========================================
+# SQL
+# ==========================================
+BKP*.sql
+
 # Compiled class file
 *.class
 
