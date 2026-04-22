@@ -40,6 +40,9 @@ BKP*.sql
 
 # Log file
 *.log
+*.log.*.gz
+/logs/
+/log/
 
 # BlueJ files
 *.ctxt
