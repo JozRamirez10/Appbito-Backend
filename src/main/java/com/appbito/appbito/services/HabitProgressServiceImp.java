@@ -2,13 +2,12 @@ package com.appbito.appbito.services;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.appbito.appbito.dtos.HabitProgressDTO;
 import com.appbito.appbito.dtos.HabitProgressMonthlyDTO;
-import com.appbito.appbito.entities.Day;
 import com.appbito.appbito.entities.Habit;
 import com.appbito.appbito.entities.HabitProgress;
 import com.appbito.appbito.repositories.HabitProgressRepository;
@@ -107,57 +105,68 @@ public class HabitProgressServiceImp implements HabitProgressService{
     public int getStreak(Long habitId){
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new RuntimeException("Habit not found"));
 
-        Set<Long> allowedDays = new HashSet<>();
-        for(Day day : habit.getDays()){
-            allowedDays.add(day.getId());
-        }
+        Set<DayOfWeek> allowedDays = habit.getDays();
 
         List<HabitProgress> progressList = repository.findProgressByHabit(habitId);
         if(progressList.isEmpty()) return 0;
 
         List<LocalDate> progressDates = new ArrayList<>();
         for(HabitProgress progress : progressList){
-            LocalDate localDate = progress.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            if(allowedDays.contains((long) localDate.getDayOfWeek().getValue())){
+            
+            LocalDate localDate = progress.getDate().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDate();
+
+            if(allowedDays.contains(localDate.getDayOfWeek())){
                 progressDates.add(localDate);
             }
         }
-
+        
         if(progressDates.isEmpty()) return 0;
-
-        return calculateStrek(progressDates, new ArrayList<>(allowedDays));
+        
+        return calculateStreak(progressDates, allowedDays);
     }
 
-    private int calculateStrek(List<LocalDate> progress, List<Long> allowedDays){
-        if(progress.isEmpty() || allowedDays.isEmpty()) return 0;
+    private int calculateStreak(List<LocalDate> progress, Set<DayOfWeek> allowedDays){
+        if(progress != null || progress.isEmpty() || allowedDays != null || allowedDays.isEmpty()) return 0;
+
+        List<LocalDate> sortedProgress = progress.stream()
+            .distinct()
+            .sorted()
+            .toList();
 
         int maxStreak = 0;
-        int currentStreak = 0;
-        int countDay = 0;
+        int currentStreak = 1;
+        
+        for(int i = 1; i < sortedProgress.size(); i++){
+            LocalDate lastSuccess = sortedProgress.get(i - 1);
+            LocalDate currentSuccess = sortedProgress.get(i);
 
-        LocalDate prev = progress.get(0);
+            LocalDate nextExpectedDate = findNextExpectedDate(lastSuccess, allowedDays);
 
-        for(LocalDate date : progress){
-            int currentDay = date.getDayOfWeek().getValue();
-
-            if(currentStreak == 0)
-                countDay = allowedDays.indexOf((long) currentDay);
-
-            long diffDays = ChronoUnit.DAYS.between(prev, date);
-
-            if(countDay != -1 && currentDay == allowedDays.get(countDay) && diffDays <= 7){
+            if (currentSuccess.equals(nextExpectedDate)) {
                 currentStreak++;
             }else{
                 maxStreak = Math.max(maxStreak, currentStreak);
                 currentStreak = 1;
-                countDay = allowedDays.indexOf((long) currentDay);
             }
-
-            countDay = (countDay + 1) % allowedDays.size();
-            prev = date;
-
         }
+
         return Math.max(maxStreak, currentStreak);
+    }
+
+    private LocalDate findNextExpectedDate(LocalDate from, Set<DayOfWeek> allowedDays){
+
+        LocalDate candidate = from.plusDays(1);
+
+        for(int i = 0; i < 7; i++){
+            DayOfWeek candidateDay = DayOfWeek.valueOf(candidate.getDayOfWeek().name());
+            if (allowedDays.contains(candidateDay)) {
+                return candidate;
+            }
+            candidate = candidate.plusDays(1);
+        }
+
+        return candidate;
     }
 
     private HabitProgress habitProgressDTOtoHabitProgress(HabitProgressDTO habitProgressDTO){
