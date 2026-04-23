@@ -3,7 +3,9 @@ package com.appbito.appbito.services;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -104,18 +106,30 @@ public class HabitServiceImp implements HabitService{
     @Override
     @Transactional
     public List<HabitDTO> updateBatch(List<HabitDTO> habits) {
-        List<Habit> entities = habits.stream()
-            .map(habitDTO -> {
-                Optional<Habit> habitOptional = this.repository.findById(habitDTO.getId());
-                if(habitOptional.isPresent()){
-                    Habit habitTransform = habitDtoToHabit(habitDTO);
-                    Habit habit = habitOptional.orElseThrow();
-                    return habit;
-                }
-                return null;
-            }).collect(Collectors.toList());
+        
+        if(habits == null || habits.isEmpty()) return Collections.emptyList();
+
+        List<Long> habitIds = habits.stream()
+            .map(HabitDTO::getId)
+            .collect(Collectors.toList());
+        
+        List<Habit> habitsBD = this.repository.findAllWithDaysByIds(habitIds);
+
+        Map<Long, HabitDTO> dtoMap = habits.stream()
+            .collect(Collectors.toMap(HabitDTO::getId, dto -> dto));
+
+        for(Habit habit : habitsBD){
+            HabitDTO dto = dtoMap.get(habit.getId());
+            if(dto != null){
+                habit.setName(dto.getName());
+                habit.setDescription(dto.getDescription());
+                habit.setHour(dto.getHour());
+                habit.setDays(dto.getDays());
+            }
+        }
+
         List<Habit> habitsSave = new ArrayList<>();
-        this.repository.saveAll(entities).forEach(habitsSave::add);
+        this.repository.saveAll(habitsBD).forEach(habitsSave::add);
         return listHabitToListHabitDTO(habitsSave);
     }
     

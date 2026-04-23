@@ -15,6 +15,9 @@ public interface HabitRepository extends CrudRepository<Habit, Long>{
     @Query("SELECT h FROM Habit h LEFT JOIN FETCH h.days")
     List<Habit> findAllWithDays();
 
+    @Query("SELECT h FROM Habit h LEFT JOIN FETCH h.days WHERE h.id IN :ids")
+    List<Habit> findAllWithDaysByIds(@Param("ids") List<Long> ids);
+
     @Query("SELECT h FROM Habit h LEFT JOIN FETCH h.days WHERE :day MEMBER OF h.days")
     List<Habit> findByDaysContaining(@Param("day") DayOfWeek day);
 
