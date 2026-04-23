@@ -21,13 +21,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "user")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,11 +60,13 @@ public class User {
 
     private String image;
 
+    @Builder.Default
     private boolean enabled = false;
 
     @Column(unique = true)
     private String verificationToken;
 
+    @Builder.Default
     @OneToMany(
         fetch = FetchType.LAZY,
         mappedBy = "user", 
@@ -66,10 +74,6 @@ public class User {
         orphanRemoval = true
     )
     @JsonIgnore
-    private List<Habit> habits;
-
-    public User() {
-        this.habits = new ArrayList<>();
-    }
+    private List<Habit> habits = new ArrayList<>();
 
 }

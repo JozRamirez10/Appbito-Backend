@@ -120,12 +120,12 @@ public class HabitServiceImp implements HabitService{
     }
     
     private Habit habitDtoToHabit(HabitDTO habitDTO){
-        Habit habit = new Habit();
-        habit.setName(habitDTO.getName());
-        habit.setDescription(habitDTO.getDescription());
-        habit.setHour(habitDTO.getHour());
-        
-        habit.setDays(habitDTO.getDays());
+        Habit habit = Habit.builder()
+            .name(habitDTO.getName())
+            .description(habitDTO.getDescription())
+            .hour(habitDTO.getHour())
+            .days(habitDTO.getDays())
+            .build();
 
         if(habitDTO.getUserId() != null){
             User user = getUserFromHabitDto(habitDTO);

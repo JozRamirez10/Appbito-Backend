@@ -26,13 +26,19 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "habit")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Habit {
     
     @Id
@@ -57,6 +63,7 @@ public class Habit {
     @Column(name = "day_name")
     private Set<DayOfWeek> days;
 
+    @Builder.Default
     @OneToMany(
         fetch = FetchType.LAZY,
         mappedBy = "habit", 
