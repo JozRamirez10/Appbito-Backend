@@ -25,4 +25,7 @@ public interface HabitRepository extends CrudRepository<Habit, Long>{
     @Query("DELETE FROM HabitProgress h WHERE h.id = :habitProgressId")
     void deleteHabitProgressById(@Param("habitProgressId") Long habitProgressId);
 
+    @Modifying
+    @Query("DELETE FROM HabitProgress hp WHERE hp.habit.id = :habitId")
+    void deleteAllProgressByHabitId(@Param("habitId") Long habitId); 
 }

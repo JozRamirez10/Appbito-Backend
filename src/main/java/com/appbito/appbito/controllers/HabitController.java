@@ -113,9 +113,7 @@ public class HabitController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id){
-        Optional<HabitDTO> habitOptional = this.service.findById(id);
-        if(habitOptional.isPresent()){
-            this.service.deleteById(id);
+        if(this.service.deleteById(id)){
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();

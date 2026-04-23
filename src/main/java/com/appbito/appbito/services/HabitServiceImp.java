@@ -74,10 +74,15 @@ public class HabitServiceImp implements HabitService{
 
     @Override
     @Transactional
-    public void deleteById(Long id) {
-        this.repository.deleteById(id);
+    public boolean deleteById(Long id) {
+        Optional<Habit> habitOptional = this.repository.findById(id);
+        if(habitOptional.isPresent()){
+            this.repository.deleteAllProgressByHabitId(id);
+            this.repository.delete(habitOptional.get());
+            return true;
+        }
+        return false;
     }
-
 
     @Override
     @Transactional(readOnly = true)
