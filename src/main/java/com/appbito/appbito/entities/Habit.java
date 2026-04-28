@@ -1,14 +1,5 @@
 package com.appbito.appbito.entities;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -24,14 +15,20 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Habit Entity.
+ */
 @Entity
 @Table(name = "habit")
 @Getter
@@ -40,42 +37,42 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Habit {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Name is required")
+    @Column(nullable = false)
     private String name;
 
     private String description;
 
-    @JsonFormat(pattern = "HH:mm")
+    @Column(nullable = false)
     private LocalTime hour;
 
-    @NotEmpty(message = "Days is requireds")
-    @ElementCollection(targetClass = DayOfWeek.class, fetch = FetchType.EAGER)
+    @ElementCollection(
+        targetClass = DayOfWeek.class,
+        fetch = FetchType.EAGER
+    )
     @CollectionTable(
         name = "habit_days",
         joinColumns = @JoinColumn(name = "habit_id")
     )
     @Enumerated(EnumType.STRING)
-    @Column(name = "day_name")
+    @Column(name = "day_name", nullable = false)
     private Set<DayOfWeek> days;
 
     @Builder.Default
     @OneToMany(
         fetch = FetchType.LAZY,
-        mappedBy = "habit", 
-        cascade = CascadeType.ALL, 
+        mappedBy = "habit",
+        cascade = CascadeType.ALL,
         orphanRemoval = true
     )
-    @JsonIgnore
     private List<HabitProgress> habitProgress = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
     private User user;
-    
+
 }
