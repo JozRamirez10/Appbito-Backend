@@ -8,11 +8,13 @@ import com.appbito.appbito.exceptions.InvalidTokenException;
 import com.appbito.appbito.exceptions.ResourceNotFoundException;
 import com.appbito.appbito.services.HabitService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/habits")
 @RequiredArgsConstructor
+@Validated
 public class HabitController {
 
     private static final String HABIT_NOT_FOUND = Constants.Errors.HABIT_NOT_FOUND;
@@ -147,12 +150,11 @@ public class HabitController {
      */
     @PutMapping("/batch")
     public ResponseEntity<List<HabitDtoResponse>> updateBatch(
-        @Valid @RequestBody List<HabitDtoRequest> habits, Authentication authentication) {
+        @Valid @NotEmpty @RequestBody List<HabitDtoRequest> habits, Authentication authentication) {
 
         Long tokenUserId = getUserIdFromToken(authentication);
 
         return ResponseEntity.ok(this.service.updateBatch(habits, tokenUserId));
-
     }
 
     /**
