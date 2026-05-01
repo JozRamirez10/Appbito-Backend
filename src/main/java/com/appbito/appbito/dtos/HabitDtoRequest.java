@@ -1,42 +1,36 @@
 package com.appbito.appbito.dtos;
 
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Set;
-
+import com.appbito.appbito.constants.Constants;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Habit Dto Request.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HabitDTO {
-    
+public class HabitDtoRequest {
+
     private Long id;
 
-    @NotBlank(message = "Name is required")
+    @NotBlank(message = Constants.Habit.NAME_BLANK)
     private String name;
 
     private String description;
 
-    @JsonFormat(pattern = "HH:mm")
+    @JsonFormat(pattern = Constants.Habit.HOUR_PATTERN)
     private LocalTime hour;
 
-    @NotEmpty(message = "Days are required")
+    @NotEmpty(message = Constants.Habit.DAYS_EMPTY)
     private Set<DayOfWeek> days;
-
-    @JsonIgnore
-    private List<HabitProgressDTO> habitProgress;
-
-    private Long userId;
-    
 }
