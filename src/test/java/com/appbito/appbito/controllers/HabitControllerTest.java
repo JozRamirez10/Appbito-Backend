@@ -386,6 +386,31 @@ class HabitControllerTest {
     }
 
     @Test
+    void updateBatchBadRequestEmptyList() throws Exception {
+
+        String jsonRequest = "[]";
+
+        mockMvc.perform(
+            put(PUT_BATCH)
+                .principal(authToken)
+                .contentType(APP_JSON)
+                .content(jsonRequest)
+        )
+        .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateBatchBadRequestNullList() throws Exception {
+
+        mockMvc.perform(
+            put(PUT_BATCH)
+                .principal(authToken)
+                .contentType(APP_JSON)
+        )
+        .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void updateBatchUnauthorized() throws Exception {
 
         List<HabitDtoRequest> batchRequest = List.of(habitRequestMock);
