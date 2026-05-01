@@ -1,6 +1,7 @@
 package com.appbito.appbito.exceptions;
 
 import com.appbito.appbito.constants.Constants;
+import jakarta.validation.ConstraintViolationException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     /**
-     * error 400 - Bad request.
+     * error 400 - Bad request to Dtos Request.
      *
      * @param ex exception.
      *
@@ -30,6 +31,29 @@ public class GlobalExceptionHandler {
 
         ex.getBindingResult().getFieldErrors().forEach(error -> {
             errors.put(error.getField(), error.getDefaultMessage());
+        });
+
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    /**
+     * error 400 - Bad request to List.
+     *
+     * @param ex exception.
+     *
+     * @return response entity exception.
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<?> handleConstraint(ConstraintViolationException ex){
+
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getConstraintViolations().forEach(violation -> {
+            String propertyPath = violation.getPropertyPath().toString();
+            if (propertyPath.contains(".")) {
+                propertyPath = propertyPath.substring(propertyPath.indexOf(".") + 1);
+            }
+            errors.put(propertyPath, violation.getMessage());
         });
 
         return ResponseEntity.badRequest().body(errors);
