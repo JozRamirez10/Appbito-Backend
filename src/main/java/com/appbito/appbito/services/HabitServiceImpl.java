@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class HabitServiceImp implements HabitService {
+public class HabitServiceImpl implements HabitService {
 
     private final HabitRepository repository;
 
