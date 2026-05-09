@@ -1,12 +1,12 @@
 package com.appbito.appbito.services;
 
-import com.appbito.appbito.dtos.HabitDtoRequest;
-import com.appbito.appbito.dtos.HabitDtoResponse;
+import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.entities.Habit;
 import com.appbito.appbito.entities.User;
-import com.appbito.appbito.exceptions.ForbiddenAccessException;
 import com.appbito.appbito.repositories.HabitRepository;
 import com.appbito.appbito.repositories.UserRepository;
+import com.appbito.appbito.utils.AuthUtils;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class HabitServiceImpl implements HabitService {
 
     private final HabitRepository repository;
@@ -41,6 +42,29 @@ public class HabitServiceImpl implements HabitService {
     public Optional<HabitDtoResponse> findById(Long id) {
         return this.repository.findById(id)
             .map(this::habitToHabitDtoResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<HabitDtoResponse> findByIdAndUserId(Long id, Long userId) {
+        return getValidHabitForUser(id, userId)
+            .map(this::habitToHabitDtoResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HabitDtoResponse> findByUserId(Long id) {
+        return listHabitToListHabitDto(
+            this.repository.findByUserId(id)
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HabitDtoResponse> findByToday(Long userId) {
+        DayOfWeek today = LocalDate.now().getDayOfWeek();
+        List<Habit> habits = this.repository.findByDaysContainingAndUserId(today, userId);
+        return listHabitToListHabitDto(habits);
     }
 
     @Override
@@ -79,39 +103,6 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     @Transactional
-    public boolean deleteById(Long id, Long userId) {
-
-        Optional<Habit> habitOptional = getValidHabitForUser(id, userId);
-
-        if (habitOptional.isPresent()) {
-
-            this.repository.deleteAllProgressByHabitId(id);
-            this.repository.delete(habitOptional.get());
-
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<HabitDtoResponse> findByUserId(Long id) {
-        return listHabitToListHabitDto(
-            this.repository.findByUserId(id)
-        );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<HabitDtoResponse> findByToday(Long userId) {
-        DayOfWeek today = LocalDate.now().getDayOfWeek();
-        List<Habit> habits = this.repository.findByDaysContainingAndUserId(today, userId);
-        return listHabitToListHabitDto(habits);
-    }
-
-    @Override
-    @Transactional
     public List<HabitDtoResponse> updateBatch(List<HabitDtoRequest> habits, Long userId) {
 
         if (habits == null || habits.isEmpty()) {
@@ -129,7 +120,7 @@ public class HabitServiceImpl implements HabitService {
 
         for (Habit habit : habitsBd) {
 
-            validateOwnership(habit, userId);
+            AuthUtils.validateOwnership(habit.getUser().getId(), userId);
 
             HabitDtoRequest dto = dtoMap.get(habit.getId());
             if (dto != null) {
@@ -141,6 +132,22 @@ public class HabitServiceImpl implements HabitService {
         }
 
         return listHabitToListHabitDto(this.repository.saveAll(habitsBd));
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteById(Long id, Long userId) {
+
+        Optional<Habit> habitOptional = getValidHabitForUser(id, userId);
+
+        if (habitOptional.isPresent()) {
+
+            this.repository.deleteHabitByIdDirectly(habitOptional.get().getId());
+
+            return true;
+        }
+
+        return false;
     }
 
     private Habit habitDtoRequestToHabit(HabitDtoRequest habitDto) {
@@ -170,19 +177,14 @@ public class HabitServiceImpl implements HabitService {
     private List<HabitDtoResponse> listHabitToListHabitDto(List<Habit> habits) {
         return habits.stream()
             .map(this::habitToHabitDtoResponse)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private Optional<Habit> getValidHabitForUser(Long habitId, Long userId) {
-        return this.repository.findById(habitId).map(habit -> {
-            validateOwnership(habit, userId);
-            return habit;
-        });
-    }
-
-    private void validateOwnership(Habit habit, Long userId) {
-        if (!habit.getUser().getId().equals(userId)) {
-            throw new ForbiddenAccessException();
-        }
+        return this.repository.findById(habitId)
+            .map(habit -> {
+                AuthUtils.validateOwnership(habit.getUser().getId(), userId);
+                return habit;
+            });
     }
 }
