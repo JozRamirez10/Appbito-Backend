@@ -1,32 +1,27 @@
 package com.appbito.appbito.controllers;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
+import com.appbito.appbito.constants.Constants;
+import com.appbito.appbito.dtos.requests.UserDtoDeleteRequest;
+import com.appbito.appbito.dtos.requests.UserDtoRequest;
+import com.appbito.appbito.dtos.requests.UserDtoUpdatePasswordRequest;
+import com.appbito.appbito.dtos.requests.UserDtoUpdateRequest;
+import com.appbito.appbito.dtos.responses.UserDtoResponse;
+import com.appbito.appbito.exceptions.ResourceNotFoundException;
+import com.appbito.appbito.services.ImageService;
+import com.appbito.appbito.services.UserService;
+import com.appbito.appbito.utils.AuthUtils;
+import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.imageio.ImageIO;
-
-import org.imgscalr.Scalr;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,174 +30,188 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.appbito.appbito.dtos.UpdatePasswordRequest;
-import com.appbito.appbito.dtos.UserDTO;
-import com.appbito.appbito.entities.User;
-import com.appbito.appbito.services.UserService;
-
-import jakarta.validation.Valid;
-
+/**
+ * User Controller.
+ */
 @CrossOrigin(originPatterns = {"http://localhost:4200"})
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
-    @Value("${app.image-dir}")
-    private String IMAGE_DIR;
+    private static final String USER_NOT_FOUND = Constants.Errors.USER_NOT_FOUND;
 
-    @Autowired
-    private UserService service;
+    private final UserService service;
 
+    private final ImageService imageService;
+
+    /**
+     * method find all.
+     *
+     * @return a list of UserDtoResponse.
+     */
     @GetMapping
-    public List<User> list(){
-        return this.service.findAll();
+    public ResponseEntity<List<UserDtoResponse>> list() {
+        return ResponseEntity.ok(this.service.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> byId(@PathVariable Long id){
-        Optional<UserDTO> userOptional = this.service.findById(id);
-        if(userOptional.isPresent()){
-            return ResponseEntity.status(HttpStatus.OK).body(userOptional.orElseThrow());
+    /**
+     * method find me.
+     *
+     * @param authentication auth token.
+     *
+     * @return userDtoResponse.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserDtoResponse> byId(Authentication authentication) {
+
+        Long id = AuthUtils.getUserIdFromToken(authentication);
+
+        UserDtoResponse userDto = this.service.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+
+        return ResponseEntity.ok(userDto);
+    }
+
+    /**
+     * method get image of me.
+     *
+     * @param authentication auth token.
+     *
+     * @return user's image like resource.
+     */
+    @GetMapping("/me/image")
+    public ResponseEntity<Resource> getImage(Authentication authentication) {
+
+        Long id = AuthUtils.getUserIdFromToken(authentication);
+
+        UserDtoResponse userDto = this.service.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+
+        if (userDto.getImage() == null) {
+            throw new ResourceNotFoundException(Constants.Files.IMAGE_NOT_FOUND);
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Error", "User not found"));
+
+        Resource resource = this.imageService.loadAsResource(userDto.getImage());
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.IMAGE_JPEG)
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                "inline; filename=\"" + resource.getFilename() + "\"")
+            .body(resource);
     }
 
+    /**
+     * method create.
+     *
+     * @param user userDtoRequest.
+     *
+     * @return userDtoResponse.
+     */
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody User user, BindingResult result){
-        if(result.hasErrors()){
-            return validation(result);
-        }
+    public ResponseEntity<UserDtoResponse> create(@Valid @RequestBody UserDtoRequest user) {
 
-        if(this.service.existsByEmail(user.getEmail())){
-            return ResponseEntity.badRequest().body(Map.of("email", "Email already exists"));
-        }
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.service.save(user));
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(this.service.save(user));
     }
 
-    @GetMapping("/image/{filename}")
-    public ResponseEntity<?> getImage(@PathVariable String filename){
-        try{
-            Path imagePath = Paths.get(IMAGE_DIR).resolve(filename).normalize();
-            Resource resource = new UrlResource(imagePath.toUri());
+    /**
+     * method upload image.
+     *
+     * @param file image.
+     * @param authentication auth token.
+     *
+     * @return userDtoResponse.
+     */
+    @PostMapping("/me/image")
+    public ResponseEntity<UserDtoResponse> uploadProfileImage(
+        @RequestParam("image") MultipartFile file,
+        Authentication authentication) {
 
-            if(!resource.exists()){
-                return ResponseEntity.notFound().build();
-            }
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
 
-            return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                .body(resource);
-        }catch(Exception e){
-            return ResponseEntity.status(500).body(null);
-        }
+        String filename = this.imageService.storeProfileImage(file, userId);
+
+        UserDtoResponse updatedUser = this.service.saveImage(userId, filename);
+
+        return ResponseEntity.ok(updatedUser);
     }
 
-    @SuppressWarnings("null")
-    @PostMapping("/image")
-    public ResponseEntity<?> uploadProfileImage(@RequestParam("image") MultipartFile file, @RequestParam("email") String email){
-        try{
+    /**
+     * method update me.
+     *
+     * @param user userDtoUpdateRequest.
+     * @param authentication auth token.
+     *
+     * @return userDtoResponse.
+     */
+    @PutMapping("/me")
+    public ResponseEntity<UserDtoResponse> update(@Valid @RequestBody UserDtoUpdateRequest user,
+        Authentication authentication) {
 
-            File dir = new File(IMAGE_DIR);
-            if(!dir.exists()){
-                dir.mkdirs();
-            }
+        Long id = AuthUtils.getUserIdFromToken(authentication);
 
-            String contentType = file.getContentType();
-            if(!contentType.equals("image/jpeg") && !contentType.equals("image/png")) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Format not allowed"));
-            }
+        UserDtoResponse userDto = this.service.update(user, id)
+            .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
 
-            BufferedImage originalImage = ImageIO.read(file.getInputStream());
-
-            BufferedImage resizedImage = Scalr.resize(originalImage, 200);
-
-            String filename = email.replaceAll("[^a-zA-Z0-9]", "_") + ".jpg";
-            File outputFile = new File(IMAGE_DIR + filename);
-
-            ImageIO.write(resizedImage, "jpg", outputFile);
-
-            if (!outputFile.exists()) {
-                return ResponseEntity.status(500).body("Error processing image");
-            }
-
-            String imagePath = filename;
-
-            this.service.saveImage(email, imagePath);
-
-            return ResponseEntity.ok().body(Map.of("image", imagePath));
-        }catch(IOException e){
-            return ResponseEntity.status(500).body("Error processing image");
-        }catch(Exception e){
-            return ResponseEntity.status(500).body("Unexpected error");
-        }
+        return ResponseEntity.ok(userDto);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody UserDTO user, BindingResult result, @PathVariable Long id){
-        if(result.hasErrors()){
-            return validation(result);
-        }
+    /**
+     * method update password of me.
+     *
+     * @param request userDtoUpdatePasswordRequest.
+     * @param authentication auth token.
+     *
+     * @return void.
+     */
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> updatePassword(
+        @Valid @RequestBody UserDtoUpdatePasswordRequest request,
+        Authentication authentication) {
 
-        if(!this.service.existsByEmailAndId(user.getEmail(), user.getId()) 
-                && this.service.existsByEmail(user.getEmail())){
-            return ResponseEntity.badRequest().body(Map.of("email", "Email already exists"));
-        }
+        Long id = AuthUtils.getUserIdFromToken(authentication);
 
-        Optional<UserDTO> userOptional = this.service.update(user, id);
-        if(userOptional.isPresent()){
-            return ResponseEntity.ok(userOptional.orElseThrow());
-        }
-        
-        return ResponseEntity.notFound().build();
+        this.service.updatePassword(id, request.getOldPassword(), request.getNewPassword());
+
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/password/{id}")
-    public ResponseEntity<?> updatePassword(@Valid @RequestBody UpdatePasswordRequest request, BindingResult result, @PathVariable Long id){
-        if(result.hasErrors()){
-            return validation(result);
+    /**
+     * method delete me.
+     *
+     * @param authentication auth token.
+     *
+     * @return void.
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> delete(Authentication authentication) {
+
+        Long id = AuthUtils.getUserIdFromToken(authentication);
+
+        if (!this.service.deleteById(id)) {
+            throw new ResourceNotFoundException(USER_NOT_FOUND);
         }
 
-        Optional<UserDTO> userOptional = this.service.updatePassword(id, request.getOldPassword(), request.getNewPassword());
-        if(userOptional.isPresent()){
-            return ResponseEntity.ok(userOptional.orElseThrow());
-        }
-
-        return ResponseEntity.badRequest().body(Map.of("error", "Password incorrect"));
+        return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id){
-        Optional<UserDTO> userOptional = this.service.findById(id);
-        if(userOptional.isPresent()){
-            this.service.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
-    }
+    /**
+     * method delete me by password.
+     *
+     * @param userDto userDtoDeleteRequest.
+     * @param authentication auth token.
+     *
+     * @return void.
+     */
+    @DeleteMapping("/me/password")
+    public ResponseEntity<Void> confirmDelete(@Valid @RequestBody UserDtoDeleteRequest userDto,
+        Authentication authentication) {
 
-    @DeleteMapping("/password/{id}")
-    public ResponseEntity<?> confirmDelete(@PathVariable Long id, @RequestBody Map<String, String> request){
-        String password = request.get("password");
-        try{
-            Optional<User> user = this.service.findByIdAndPassword(id, password);
-            if(user.isPresent()){
-                this.service.deleteById(id);
-                return ResponseEntity.noContent().build();
-            }
-            return ResponseEntity.notFound().build();
-        }catch(IllegalArgumentException e){
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
+        Long id = AuthUtils.getUserIdFromToken(authentication);
 
-    private ResponseEntity<?> validation(BindingResult result){
-        Map<String, String> errors = new HashMap<>();
-        result.getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
-        return ResponseEntity.badRequest().body(errors);
-    }
+        this.service.deleteByIdAndPassword(id, userDto.getPassword());
 
+        return ResponseEntity.noContent().build();
+    }
 }
