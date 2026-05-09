@@ -25,6 +25,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * Habit Entity.
@@ -60,6 +62,7 @@ public class Habit {
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "day_name", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<DayOfWeek> days;
 
     @Builder.Default
@@ -69,6 +72,7 @@ public class Habit {
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<HabitProgress> habitProgress = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
