@@ -1,12 +1,11 @@
 package com.appbito.appbito.controllers;
 
 import com.appbito.appbito.constants.Constants;
-import com.appbito.appbito.dtos.HabitDtoRequest;
-import com.appbito.appbito.dtos.HabitDtoResponse;
-import com.appbito.appbito.exceptions.ForbiddenAccessException;
-import com.appbito.appbito.exceptions.InvalidTokenException;
+import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.exceptions.ResourceNotFoundException;
 import com.appbito.appbito.services.HabitService;
+import com.appbito.appbito.utils.AuthUtils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
@@ -61,10 +60,10 @@ public class HabitController {
     public ResponseEntity<HabitDtoResponse> byId(@PathVariable Long id,
         Authentication authentication) {
 
-        HabitDtoResponse habitDto = this.service.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(HABIT_NOT_FOUND));
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
 
-        validateOwnership(habitDto.getUserId(), authentication);
+        HabitDtoResponse habitDto = this.service.findByIdAndUserId(id, userId)
+            .orElseThrow(() -> new ResourceNotFoundException(HABIT_NOT_FOUND));
 
         return ResponseEntity.ok(habitDto);
     }
@@ -72,18 +71,16 @@ public class HabitController {
     /**
      * method by user id.
      *
-     * @param id user.
      * @param authentication auth token.
      *
      * @return a list of habitDtoResponse.
      */
-    @GetMapping("/user/{id}")
-    public ResponseEntity<List<HabitDtoResponse>> byUserId(@PathVariable Long id,
-        Authentication authentication) {
+    @GetMapping("/me")
+    public ResponseEntity<List<HabitDtoResponse>> byUserId(Authentication authentication) {
 
-        validateOwnership(id, authentication);
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
 
-        return ResponseEntity.ok(this.service.findByUserId(id));
+        return ResponseEntity.ok(this.service.findByUserId(userId));
     }
 
     /**
@@ -96,7 +93,7 @@ public class HabitController {
     @GetMapping("/today")
     public ResponseEntity<List<HabitDtoResponse>> byToday(Authentication authentication) {
 
-        Long tokenUserId = getUserIdFromToken(authentication);
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
 
         return ResponseEntity.ok(this.service.findByToday(tokenUserId));
     }
@@ -113,7 +110,7 @@ public class HabitController {
     public ResponseEntity<HabitDtoResponse> create(@Valid @RequestBody HabitDtoRequest habit,
         Authentication authentication) {
 
-        Long tokenUserId = getUserIdFromToken(authentication);
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
 
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(this.service.save(habit, tokenUserId));
@@ -132,7 +129,7 @@ public class HabitController {
     public ResponseEntity<HabitDtoResponse> update(@Valid @RequestBody HabitDtoRequest habit,
         @PathVariable Long id, Authentication authentication) {
 
-        Long tokenUserId = getUserIdFromToken(authentication);
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
 
         HabitDtoResponse habitDto = this.service.update(habit, id, tokenUserId)
             .orElseThrow(() -> new ResourceNotFoundException(HABIT_NOT_FOUND));
@@ -152,7 +149,7 @@ public class HabitController {
     public ResponseEntity<List<HabitDtoResponse>> updateBatch(
         @Valid @NotEmpty @RequestBody List<HabitDtoRequest> habits, Authentication authentication) {
 
-        Long tokenUserId = getUserIdFromToken(authentication);
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
 
         return ResponseEntity.ok(this.service.updateBatch(habits, tokenUserId));
     }
@@ -168,7 +165,7 @@ public class HabitController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
 
-        Long tokenUserId = getUserIdFromToken(authentication);
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
 
         if (!this.service.deleteById(id, tokenUserId)) {
             throw new ResourceNotFoundException(HABIT_NOT_FOUND);
@@ -176,22 +173,4 @@ public class HabitController {
 
         return ResponseEntity.noContent().build();
     }
-
-    private void validateOwnership(Long userId, Authentication authentication) {
-
-        Long tokenUserId = getUserIdFromToken(authentication);
-
-        if (!userId.equals(tokenUserId)) {
-            throw new ForbiddenAccessException();
-        }
-    }
-
-    private Long getUserIdFromToken(Authentication authentication) {
-        try {
-            return Long.parseLong(authentication.getName());
-        } catch (NumberFormatException e) {
-            throw new InvalidTokenException();
-        }
-    }
-
 }
