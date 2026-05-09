@@ -28,10 +28,6 @@ public interface HabitRepository extends JpaRepository<Habit, Long> {
     List<Habit> findByUserId(@Param("userId") Long userId);
 
     @Modifying
-    @Query("DELETE FROM HabitProgress h WHERE h.id = :habitProgressId")
-    void deleteHabitProgressById(@Param("habitProgressId") Long habitProgressId);
-
-    @Modifying
-    @Query("DELETE FROM HabitProgress hp WHERE hp.habit.id = :habitId")
-    void deleteAllProgressByHabitId(@Param("habitId") Long habitId);
+    @Query(value = "DELETE FROM habit WHERE id = :id", nativeQuery = true)
+    void deleteHabitByIdDirectly(@Param("id") Long id);
 }
