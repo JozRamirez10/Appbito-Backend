@@ -1,9 +1,7 @@
-package com.appbito.appbito.dtos;
+package com.appbito.appbito.dtos.responses;
 
 import com.appbito.appbito.constants.Constants;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Set;
@@ -13,24 +11,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Habit Dto Request.
+ * Habit Dto Response.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HabitDtoRequest {
+public class HabitDtoResponse {
 
     private Long id;
-
-    @NotBlank(message = Constants.Habit.NAME_BLANK)
     private String name;
-
     private String description;
 
-    @JsonFormat(pattern = Constants.Habit.HOUR_PATTERN)
+    @JsonFormat(pattern = Constants.General.HOUR_PATTERN)
     private LocalTime hour;
 
-    @NotEmpty(message = Constants.Habit.DAYS_EMPTY)
     private Set<DayOfWeek> days;
+    private Long userId;
+
 }
