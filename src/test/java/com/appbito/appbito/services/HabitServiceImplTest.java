@@ -12,8 +12,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.appbito.appbito.dtos.HabitDtoRequest;
-import com.appbito.appbito.dtos.HabitDtoResponse;
+import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.entities.Habit;
 import com.appbito.appbito.entities.User;
 import com.appbito.appbito.exceptions.ForbiddenAccessException;
@@ -32,6 +32,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Habit Service Test
+ */
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class HabitServiceImplTest {
@@ -116,7 +119,7 @@ class HabitServiceImplTest {
     }
 
     @Test
-    void findByIdNotFound(){
+    void findByIdNotFound() {
 
         when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.empty());
 
@@ -125,6 +128,98 @@ class HabitServiceImplTest {
         assertTrue(result.isEmpty());
 
         verify(habitRepository).findById(HABIT_ID);
+    }
+
+    @Test
+    void findByIdAndUserIdOk() {
+
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habitEntity));
+
+        Optional<HabitDtoResponse> result = habitService.findByIdAndUserId(HABIT_ID, USER_ID);
+
+        assertTrue(result.isPresent());
+        assertEquals(HABIT_NAME, result.get().getName());
+        assertEquals(USER_ID, result.get().getUserId());
+
+        verify(habitRepository).findById(HABIT_ID);
+    }
+
+    @Test
+    void findByIdAndUserIdForbidden() {
+
+        habitEntity.setUser(fakeUser());
+
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habitEntity));
+
+        assertThrows(ForbiddenAccessException.class, () -> {
+            habitService.findByIdAndUserId(HABIT_ID, USER_ID);
+        });
+
+        verify(habitRepository).findById(HABIT_ID);
+    }
+
+    @Test
+    void findByIdAndUserIdNotFound() {
+
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.empty());
+
+        Optional<HabitDtoResponse> result = habitService.findByIdAndUserId(HABIT_ID, USER_ID);
+
+        assertTrue(result.isEmpty());
+
+        verify(habitRepository).findById(HABIT_ID);
+    }
+
+    @Test
+    void findByUserIdOk() {
+
+        when(habitRepository.findByUserId(USER_ID)).thenReturn(List.of(habitEntity));
+
+        List<HabitDtoResponse> result = habitService.findByUserId(USER_ID);
+
+        validateListHabitDtoResponse(result);
+
+        verify(habitRepository).findByUserId(USER_ID);
+    }
+
+    @Test
+    void findByUserIdEmptyList() {
+
+        when(habitRepository.findByUserId(USER_ID)).thenReturn(List.of());
+
+        List<HabitDtoResponse> result = habitService.findByUserId(USER_ID);
+
+        assertTrue(result.isEmpty());
+
+        verify(habitRepository).findByUserId(USER_ID);
+    }
+
+    @Test
+    void findByTodayOk() {
+
+        DayOfWeek today = getToday();
+
+        habitEntity.setDays(Set.of(today));
+
+        when(habitRepository.findByDaysContainingAndUserId(today, USER_ID))
+            .thenReturn(List.of(habitEntity));
+
+        List<HabitDtoResponse> result = habitService.findByToday(USER_ID);
+
+        validateListHabitDtoResponse(result);
+    }
+
+    @Test
+    void findByTodayEmptyList() {
+
+        when(habitRepository.findByDaysContainingAndUserId(getToday(), USER_ID)).thenReturn(List.of());
+
+        List<HabitDtoResponse> result = habitService.findByToday(USER_ID);
+
+        assertTrue(result.isEmpty());
+
+        verify(habitRepository).findByDaysContainingAndUserId(getToday(), USER_ID);
+
     }
 
     @Test
@@ -185,96 +280,6 @@ class HabitServiceImplTest {
         });
 
         verify(habitRepository).findById(HABIT_ID);
-    }
-
-    @Test
-    void deleteByIdOk() {
-
-        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habitEntity));
-
-        boolean result = habitService.deleteById(HABIT_ID, USER_ID);
-
-        assertTrue(result);
-
-        verify(habitRepository).findById(HABIT_ID);
-    }
-
-    @Test
-    void deleteByIdNotFound() {
-
-        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.empty());
-
-        boolean result = habitService.deleteById(HABIT_ID, USER_ID);
-
-        assertFalse(result);
-
-        verify(habitRepository).findById(HABIT_ID);
-    }
-
-    @Test
-    void deleteByIdForbidden() {
-
-        habitEntity.setUser(fakeUser());
-
-        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habitEntity));
-
-        assertThrows(ForbiddenAccessException.class, () -> {
-            habitService.deleteById(HABIT_ID, USER_ID);
-        });
-
-        verify(habitRepository).findById(HABIT_ID);
-    }
-
-    @Test
-    void findByUserIdOk() {
-
-        when(habitRepository.findByUserId(USER_ID)).thenReturn(List.of(habitEntity));
-
-        List<HabitDtoResponse> result = habitService.findByUserId(USER_ID);
-
-        validateListHabitDtoResponse(result);
-
-        verify(habitRepository).findByUserId(USER_ID);
-    }
-
-    @Test
-    void findByUserIdEmptyList() {
-
-        when(habitRepository.findByUserId(USER_ID)).thenReturn(List.of());
-
-        List<HabitDtoResponse> result = habitService.findByUserId(USER_ID);
-
-        assertTrue(result.isEmpty());
-
-        verify(habitRepository).findByUserId(USER_ID);
-    }
-
-    @Test
-    void findByTodayOk() {
-
-        DayOfWeek today = getToday();
-
-        habitEntity.setDays(Set.of(today));
-
-        when(habitRepository.findByDaysContainingAndUserId(today, USER_ID))
-            .thenReturn(List.of(habitEntity));
-
-        List<HabitDtoResponse> result = habitService.findByToday(USER_ID);
-
-        validateListHabitDtoResponse(result);
-    }
-
-    @Test
-    void findByTodayEmptyList() {
-
-        when(habitRepository.findByDaysContainingAndUserId(getToday(), USER_ID)).thenReturn(List.of());
-
-        List<HabitDtoResponse> result = habitService.findByToday(USER_ID);
-
-        assertTrue(result.isEmpty());
-
-        verify(habitRepository).findByDaysContainingAndUserId(getToday(), USER_ID);
-
     }
 
     @Test
@@ -403,6 +408,44 @@ class HabitServiceImplTest {
         });
 
         verify(habitRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    void deleteByIdOk() {
+
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habitEntity));
+
+        boolean result = habitService.deleteById(HABIT_ID, USER_ID);
+
+        assertTrue(result);
+
+        verify(habitRepository).findById(HABIT_ID);
+    }
+
+    @Test
+    void deleteByIdNotFound() {
+
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.empty());
+
+        boolean result = habitService.deleteById(HABIT_ID, USER_ID);
+
+        assertFalse(result);
+
+        verify(habitRepository).findById(HABIT_ID);
+    }
+
+    @Test
+    void deleteByIdForbidden() {
+
+        habitEntity.setUser(fakeUser());
+
+        when(habitRepository.findById(HABIT_ID)).thenReturn(Optional.of(habitEntity));
+
+        assertThrows(ForbiddenAccessException.class, () -> {
+            habitService.deleteById(HABIT_ID, USER_ID);
+        });
+
+        verify(habitRepository).findById(HABIT_ID);
     }
 
     private void validateListHabitDtoResponse(List<HabitDtoResponse> result) {

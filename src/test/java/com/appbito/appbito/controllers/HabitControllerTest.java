@@ -11,10 +11,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.appbito.appbito.dtos.HabitDtoRequest;
-import com.appbito.appbito.dtos.HabitDtoResponse;
+import com.appbito.appbito.constants.Constants;
+import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.exceptions.ForbiddenAccessException;
 import com.appbito.appbito.services.HabitService;
+import com.appbito.appbito.utils.AuthUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.DayOfWeek;
 import java.util.List;
@@ -56,13 +58,11 @@ class HabitControllerTest {
 
     private static final Long USER_ID = 5L;
 
-    private static final Long USER_ID_ERROR = 2L;
-
     private static final String PATH_BASE = "/api/habits";
 
     private static final String GET_BY_ID = PATH_BASE + "/{id}";
 
-    private static final String GET_BY_USER_ID = PATH_BASE + "/user/{id}";
+    private static final String GET_BY_USER_ID = PATH_BASE + "/me";
 
     private static final String GET_TODAY = PATH_BASE + "/today";
 
@@ -72,7 +72,7 @@ class HabitControllerTest {
 
     private static final String DELETE_BY_ID = PATH_BASE + "/{id}";
 
-    private static final MediaType APP_JSON = MediaType.APPLICATION_JSON;
+    private static final MediaType APP_JSON = Constants.App.APP_JSON;
 
     @BeforeEach
     void setUp() {
@@ -106,7 +106,8 @@ class HabitControllerTest {
     @Test
     void byIdOk() throws Exception {
 
-        when(habitService.findById(HABIT_ID)).thenReturn(Optional.of(habitResponseMock));
+        when(habitService.findByIdAndUserId(HABIT_ID, USER_ID))
+            .thenReturn(Optional.of(habitResponseMock));
 
         mockMvc.perform(
             get(GET_BY_ID, HABIT_ID)
@@ -120,11 +121,9 @@ class HabitControllerTest {
     @Test
     void byIdUnauthorized() throws Exception {
 
-        when(habitService.findById(HABIT_ID)).thenReturn(Optional.of(habitResponseMock));
-
         mockMvc.perform(
             get(GET_BY_ID, HABIT_ID)
-                .principal(invalidToken())
+                .principal(AuthUtils.invalidToken())
                 .contentType(APP_JSON)
         )
         .andExpect(status().isUnauthorized());
@@ -133,7 +132,8 @@ class HabitControllerTest {
     @Test
     void byIdForbidden() throws Exception {
 
-        when(habitService.findById(HABIT_ID)).thenReturn(Optional.of(habitForbidden()));
+        when(habitService.findByIdAndUserId(HABIT_ID, USER_ID))
+            .thenThrow(new ForbiddenAccessException());
 
         mockMvc.perform(
             get(GET_BY_ID, HABIT_ID)
@@ -143,11 +143,11 @@ class HabitControllerTest {
         .andExpect(status().isForbidden());
     }
 
-
     @Test
     void byIdNotFound() throws Exception {
 
-        when(habitService.findById(HABIT_ID)).thenReturn(Optional.empty());
+        when(habitService.findByIdAndUserId(HABIT_ID, USER_ID))
+            .thenReturn(Optional.empty());
 
         mockMvc.perform(
             get(GET_BY_ID, HABIT_ID)
@@ -163,7 +163,7 @@ class HabitControllerTest {
         when(habitService.findByUserId(USER_ID)).thenReturn(List.of(habitResponseMock));
 
         mockMvc.perform(
-            get(GET_BY_USER_ID, USER_ID)
+            get(GET_BY_USER_ID)
                 .principal(authToken)
                 .contentType(APP_JSON)
         )
@@ -176,22 +176,11 @@ class HabitControllerTest {
     void byUserIdUnauthorized() throws Exception {
 
         mockMvc.perform(
-            get(GET_BY_USER_ID, USER_ID)
-                .principal(invalidToken())
+            get(GET_BY_USER_ID)
+                .principal(AuthUtils.invalidToken())
                 .contentType(APP_JSON)
         )
         .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void byUserIdForbidden() throws Exception {
-
-        mockMvc.perform(
-            get(GET_BY_USER_ID, USER_ID_ERROR)
-                .principal(authToken)
-                .contentType(APP_JSON)
-        )
-        .andExpect(status().isForbidden());
     }
 
     @Test
@@ -215,7 +204,7 @@ class HabitControllerTest {
 
         mockMvc.perform(
             get(GET_TODAY)
-                .principal(invalidToken())
+                .principal(AuthUtils.invalidToken())
                 .contentType(APP_JSON)
         )
         .andExpect(status().isUnauthorized());
@@ -262,7 +251,7 @@ class HabitControllerTest {
 
         mockMvc.perform(
             post(PATH_BASE)
-                .principal(invalidToken())
+                .principal(AuthUtils.invalidToken())
                 .contentType(APP_JSON)
                 .content(jsonRequest)
         )
@@ -283,9 +272,9 @@ class HabitControllerTest {
                 .contentType(APP_JSON)
                 .content(jsonRequest)
             )
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(HABIT_ID))
-            .andExpect(jsonPath("$.name").value(HABIT_NAME));
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(HABIT_ID))
+        .andExpect(jsonPath("$.name").value(HABIT_NAME));
     }
 
     @Test
@@ -309,7 +298,7 @@ class HabitControllerTest {
 
         mockMvc.perform(
             put(PUT_BY_ID, HABIT_ID)
-                .principal(invalidToken())
+                .principal(AuthUtils.invalidToken())
                 .contentType(APP_JSON)
                 .content(jsonRequest)
         )
@@ -418,7 +407,7 @@ class HabitControllerTest {
 
         mockMvc.perform(
             put(PUT_BATCH)
-                .principal(invalidToken())
+                .principal(AuthUtils.invalidToken())
                 .contentType(APP_JSON)
                 .content(jsonRequest)
         )
@@ -461,7 +450,7 @@ class HabitControllerTest {
 
         mockMvc.perform(
             delete(DELETE_BY_ID, HABIT_ID)
-                .principal(invalidToken())
+                .principal(AuthUtils.invalidToken())
                 .contentType(APP_JSON)
         )
         .andExpect(status().isUnauthorized());
@@ -493,20 +482,8 @@ class HabitControllerTest {
         .andExpect(status().isNotFound());
     }
 
-    private HabitDtoRequest habitBadRequest () {
+    private HabitDtoRequest habitBadRequest() {
         return HabitDtoRequest.builder().build();
-    }
-
-    private HabitDtoResponse habitForbidden() {
-
-        return HabitDtoResponse.builder()
-            .id(HABIT_ID)
-            .userId(6L)
-            .build();
-    }
-
-    private TestingAuthenticationToken invalidToken() {
-        return new TestingAuthenticationToken("invalid token", null);
     }
 
 }
