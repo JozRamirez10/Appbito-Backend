@@ -17,6 +17,24 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String ERROR = Constants.Errors.ERROR;
+
+    // TODO: Add exception to json parse LocalDate and LocalTime
+
+    /**
+     * error 400 - Bad request to Illegal Arguments.
+     *
+     * @param ex exception.
+     *
+     * @return response entity exception.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(Collections.singletonMap(ERROR, ex.getMessage()));
+    }
+
     /**
      * error 400 - Bad request to Dtos Request.
      *
@@ -44,7 +62,7 @@ public class GlobalExceptionHandler {
      * @return response entity exception.
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<?> handleConstraint(ConstraintViolationException ex){
+    public ResponseEntity<?> handleConstraint(ConstraintViolationException ex) {
 
         Map<String, String> errors = new HashMap<>();
 
@@ -70,7 +88,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleInvalidToken(InvalidTokenException ex) {
         return ResponseEntity
             .status(HttpStatus.UNAUTHORIZED)
-            .body(Collections.singletonMap(Constants.Errors.ERROR, ex.getMessage()));
+            .body(Collections.singletonMap(ERROR, ex.getMessage()));
     }
 
     /**
@@ -85,7 +103,21 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
             .status(HttpStatus.FORBIDDEN)
-            .body(Collections.singletonMap(Constants.Errors.ERROR, ex.getMessage()));
+            .body(Collections.singletonMap(ERROR, ex.getMessage()));
+    }
+
+    /**
+     * error 403 - Security Exception (Forbidden).
+     *
+     * @param ex exception.
+     *
+     * @return response entity exception.
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<?> handleSecurityException(SecurityException ex) {
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(Collections.singletonMap(ERROR, ex.getMessage()));
     }
 
     /**
@@ -95,11 +127,25 @@ public class GlobalExceptionHandler {
      *
      * @return response entity exception.
      */
-    @ExceptionHandler()
+    @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<?> handleResourceNotFound(ResourceNotFoundException ex) {
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
-            .body(Collections.singletonMap(Constants.Errors.ERROR, ex.getMessage()));
+            .body(Collections.singletonMap(ERROR, ex.getMessage()));
+    }
+
+    /**
+     * error 500 - Internal Server Error.
+     *
+     * @param ex exception.
+     *
+     * @return response entity exception
+     */
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<?> handleFileStorageException(FileStorageException ex) {
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Collections.singletonMap(ERROR, ex.getMessage()));
     }
 
 }
