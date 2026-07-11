@@ -1,17 +1,20 @@
 package com.appbito.appbito.controllers;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
+import com.appbito.appbito.dtos.requests.HabitProgressDtoRequest;
+import com.appbito.appbito.dtos.requests.HabitProgressDtoUpdateRequest;
+import com.appbito.appbito.dtos.responses.HabitProgressDtoMonthlyResponse;
+import com.appbito.appbito.dtos.responses.HabitProgressDtoResponse;
+import com.appbito.appbito.services.HabitProgressService;
+import com.appbito.appbito.utils.AuthUtils;
+import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
+import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,111 +22,160 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.appbito.appbito.dtos.HabitProgressDTO;
-import com.appbito.appbito.dtos.HabitProgressMonthlyDTO;
-import com.appbito.appbito.services.HabitProgressService;
-
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.RequestParam;
-
-
+/**
+ * Habit Progress Controller.
+ */
 @RestController
 @RequestMapping("/api/habitsProgress")
+@RequiredArgsConstructor
+@Validated
 public class HabitProgressController {
 
-    @Autowired
-    private HabitProgressService service;
+    private final HabitProgressService service;
 
+    /**
+     * method by id habit.
+     *
+     * @param id habit.
+     * @param authentication auth token.
+     *
+     * @return a list of habitProgressDtoResponse.
+     */
     @GetMapping("/habit/{id}")
-    public List<HabitProgressDTO> byIdHabit(@PathVariable Long id){
-        return this.service.findByHabitId(id);
+    public ResponseEntity<List<HabitProgressDtoResponse>> byIdHabit(@PathVariable Long id,
+        Authentication authentication) {
+
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+        return ResponseEntity.ok(this.service.findByHabitId(id, userId));
     }
 
-    @GetMapping("/habit/{id}/streak")
-    public int getHabitStreak(@PathVariable Long id){
-        return this.service.getStreak(id);
-    }
-    
-    @GetMapping("/habit/{id}/range")
-    public List<HabitProgressDTO> byIdHabitAndDateRange(@PathVariable Long id, 
-        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
-        return this.service.findByHabitIdAndDateBetween(id, startDate, endDate);
-    }
-
+    /**
+     * method by id.
+     *
+     * @param id habitProgress
+     * @param authentication auth token
+     *
+     * @return habitProgressDtoResponse
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<?> byId(@PathVariable Long id){
-        Optional<HabitProgressDTO> habitProgressOptional = this.service.findById(id);
-        if(habitProgressOptional.isPresent()){
-            return ResponseEntity.status(HttpStatus.OK).body(habitProgressOptional.orElseThrow());
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Error", "Habit Progress not found"));
+    public ResponseEntity<HabitProgressDtoResponse> byId(@PathVariable Long id,
+        Authentication authentication) {
+
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+        return ResponseEntity.ok(this.service.findById(id, userId));
     }
 
+    /**
+     * method by id habit and date range.
+     *
+     * @param id habit.
+     * @param startDate localDate.
+     * @param endDate localDate.
+     * @param authentication auth token.
+     *
+     * @return a list of habitProgressDtoResponse.
+     */
+    @GetMapping("/habit/{id}/range")
+    public ResponseEntity<List<HabitProgressDtoResponse>> byIdHabitAndDateRange(
+        @PathVariable Long id,
+        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+        Authentication authentication) {
+
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+        return ResponseEntity.ok(
+            this.service.findByHabitIdAndDateBetween(id, startDate, endDate, userId)
+        );
+    }
+
+    /**
+     * method get total times performed by months.
+     *
+     * @param years a list of integer.
+     * @param habitIds a list of longs.
+     * @param authentication auth token.
+     *
+     * @return a list of habitProgressDtoMonthlyResponse.
+     */
     @GetMapping("/monthly")
-    public List<HabitProgressMonthlyDTO> getTotalTimesPerformedByMonths(
-        @RequestParam List<Integer> years,
-        @RequestParam List<Long> habitIds
-    ){
-        return this.service.getTotalTimesPerformedByMonths(years, habitIds);
+    public ResponseEntity<List<HabitProgressDtoMonthlyResponse>> getTotalTimesPerformedByMonths(
+        @RequestParam List<Integer> years, @RequestParam List<Long> habitIds,
+        Authentication authentication) {
+
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+        return ResponseEntity.ok(
+            this.service.getTotalTimesPerformedByMonths(years, habitIds, userId)
+        );
     }
 
+    /**
+     * method create.
+     *
+     * @param habitProgressDto habitProgressDtoRequest.
+     * @param authentication auth token.
+     *
+     * @return habitProgressDtoResponse.
+     */
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody HabitProgressDTO habitProgressDTO, BindingResult result){
-        if(result.hasErrors()){
-            return validation(result);
-        }
-        
-        if(habitProgressDTO.getHabitId() == null){
-            return ResponseEntity.badRequest().body(Collections.singletonMap("Error", "Habit ID is required"));
-        }
+    public ResponseEntity<HabitProgressDtoResponse> create(
+        @Valid @RequestBody HabitProgressDtoRequest habitProgressDto,
+        Authentication authentication) {
 
-        try{
-            return ResponseEntity.status(HttpStatus.CREATED).body(this.service.save(habitProgressDTO));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("Error", e.getMessage()));
-        }
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(this.service.save(habitProgressDto, userId));
     }
 
+    /**
+     * method update.
+     *
+     * @param habitProgressDto habitProgressDtoUpdateRequest.
+     * @param id habitProgress.
+     * @param authentication auth token.
+     *
+     * @return habitProgressDtoResponse.
+     */
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody HabitProgressDTO habitProgressDTO, BindingResult result, @PathVariable Long id){
-        if(result.hasErrors()){
-            return validation(result);
-        }
-        
-        if(habitProgressDTO.getHabitId() == null){
-            return ResponseEntity.badRequest().body(Collections.singletonMap("Error", "Habit ID is required"));
-        }
+    public ResponseEntity<HabitProgressDtoResponse> update(
+        @Valid @RequestBody HabitProgressDtoUpdateRequest habitProgressDto, @PathVariable Long id,
+        Authentication authentication) {
 
-        try{
-            Optional<HabitProgressDTO> habitProgresOptional = this.service.update(id, habitProgressDTO);
-            if(habitProgresOptional.isPresent()){
-                return ResponseEntity.ok(habitProgresOptional.orElseThrow());
-            }
-            return ResponseEntity.notFound().build();
-        } catch (RuntimeException e){
-            return ResponseEntity.badRequest().body(Collections.singletonMap("Error", e.getMessage()));
-        }
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+        return ResponseEntity.ok(this.service.update(id, habitProgressDto, userId));
     }
 
+    /**
+     * method delete.
+     *
+     * @param id habitProgress.
+     * @param authentication auth token.
+     *
+     * @return void.
+     */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id){
-        Optional<HabitProgressDTO> habitProgressOptional = this.service.findById(id);
-        if(habitProgressOptional.isPresent()){
-            this.service.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
+
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+        this.service.deleteById(id, userId);
+        return ResponseEntity.noContent().build();
     }
 
-    private ResponseEntity<?> validation(BindingResult result){
-        Map<String, String> errors = new HashMap<>();
-        result.getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
-        return ResponseEntity.badRequest().body(errors);
-    }
+    /**
+     * method get habit streak.
+     *
+     * @param id habit.
+     * @param authentication auth token.
+     *
+     * @return integer.
+     */
+    @GetMapping("/habit/{id}/streak")
+    public ResponseEntity<Integer> getHabitStreak(@PathVariable Long id,
+        Authentication authentication) {
 
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+        return ResponseEntity.ok(this.service.getStreak(id, userId));
+    }
 }

@@ -59,6 +59,19 @@ public final class Constants {
     }
 
     /**
+     * Constants to habit progress.
+     */
+    public static final class HabitProgress {
+
+        public static final String DATE_NULL = "The date is required";
+
+        public static final String HABIT_ID_NULL = "The habit ID is required";
+
+        public static final String YEARS_LIST_EMPTY = "The years list cannot be empty";
+
+    }
+
+    /**
      * Constants errors.
      */
     public static final class Errors {
@@ -68,6 +81,8 @@ public final class Constants {
         public static final String USER_NOT_FOUND = "User not found";
 
         public static final String HABIT_NOT_FOUND = "Habit not found";
+
+        public static final String HABIT_PROGRESS_NOT_FOUND = "Habit Progress not found";
 
         public static final String MUST_NOT_BE_EMPTY = "Must not be empty";
 
