@@ -1,29 +1,36 @@
 package com.appbito.appbito.repositories;
 
-import java.util.Date;
+import com.appbito.appbito.dtos.responses.HabitProgressDtoMonthlyResponse;
+import com.appbito.appbito.entities.HabitProgress;
+import java.time.LocalDate;
 import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.appbito.appbito.entities.HabitProgress;
+/**
+ * Habit Progress Repository.
+ */
+public interface HabitProgressRepository extends JpaRepository<HabitProgress, Long> {
 
-public interface HabitProgressRepository extends JpaRepository<HabitProgress, Long>{
     List<HabitProgress> findByHabitId(Long id);
 
-    List<HabitProgress> findByHabitIdAndDateBetween(Long habitId, Date startDate, Date endDate);
+    List<HabitProgress> findByHabitIdAndDateBetween(
+        Long habitId, LocalDate startDate, LocalDate endDate);
 
-    @Query("SELECT YEAR(hp.date), MONTH(hp.date), hp.habit.id, SUM(hp.timesPerformed) " +
-       "FROM HabitProgress hp " +
-       "WHERE YEAR(hp.date) IN (:years) " +
-       "AND hp.habit.id IN (:habitIds) " +
-       "GROUP BY YEAR(hp.date), MONTH(hp.date), hp.habit.id")
-    List<Object[]> getTotalTimesPerformedByMonths(
-        @Param("years") List<Integer> years,
+    @Query("SELECT new com.appbito.appbito.dtos.responses.HabitProgressDtoMonthlyResponse("
+        + "YEAR(hp.date), MONTH(hp.date), SUM(hp.timesPerformed), hp.habit.id) "
+        + "FROM HabitProgress hp "
+        + "WHERE hp.date >= :startDate AND hp.date <= :endDate "
+        + "AND hp.habit.id IN (:habitIds) "
+        + "GROUP BY YEAR(hp.date), MONTH(hp.date), hp.habit.id")
+    List<HabitProgressDtoMonthlyResponse> getTotalTimesPerformedByMonths(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate,
         @Param("habitIds") List<Long> habitIds
     );
 
-    @Query("SELECT hp FROM HabitProgress hp WHERE hp.habit.id = :habitId AND hp.timesPerformed >= 1 ORDER BY hp.date ASC")
+    @Query("SELECT hp FROM HabitProgress hp WHERE hp.habit.id = :habitId "
+        + "AND hp.timesPerformed >= 1  ORDER BY hp.date ASC")
     List<HabitProgress> findProgressByHabit(@Param("habitId") Long habitId);
 }
