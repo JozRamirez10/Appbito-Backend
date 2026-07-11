@@ -111,7 +111,7 @@ public class HabitServiceImpl implements HabitService {
 
         List<Long> habitIds = habits.stream()
             .map(HabitDtoRequest::getId)
-            .collect(Collectors.toList());
+            .toList();
 
         List<Habit> habitsBd = this.repository.findAllWithDaysByIds(habitIds);
 
