@@ -21,6 +21,7 @@ import com.appbito.appbito.dtos.requests.UserDtoRequest;
 import com.appbito.appbito.dtos.requests.UserDtoUpdatePasswordRequest;
 import com.appbito.appbito.dtos.requests.UserDtoUpdateRequest;
 import com.appbito.appbito.dtos.responses.UserDtoResponse;
+import com.appbito.appbito.exceptions.FileStorageException;
 import com.appbito.appbito.exceptions.ResourceNotFoundException;
 import com.appbito.appbito.services.ImageService;
 import com.appbito.appbito.services.UserService;
@@ -86,6 +87,8 @@ class UserControllerTest {
     private static final String OLD_PASSWORD = "Old Password";
 
     private static final String NEW_PASSWORD = "New Password";
+
+    private static final String PATH_TRANSVERSAL = "../malicious.jpg";
 
     private static final String PATH_BASE = "/api/users";
 
@@ -243,6 +246,21 @@ class UserControllerTest {
     }
 
     @Test
+    void meImageSecurityException() throws Exception {
+
+        userResponseMock.setImage(PATH_TRANSVERSAL);
+
+        when(userService.findById(USER_ID)).thenReturn(Optional.of(userResponseMock));
+        when(imageService.loadAsResource(PATH_TRANSVERSAL)).thenThrow(new SecurityException());
+
+        mockMvc.perform(
+            get(GET_ME_IMAGE)
+            .principal(authToken)
+        )
+        .andExpect(status().isForbidden());
+    }
+
+    @Test
     void createOk() throws Exception {
 
         when(userService.save(any(UserDtoRequest.class))).thenReturn(userResponseMock);
@@ -321,6 +339,20 @@ class UserControllerTest {
             .principal(AuthUtils.invalidToken())
         )
         .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void uploadProfileImageFileStorageException() throws Exception {
+
+        when(imageService.storeProfileImage(any(MultipartFile.class), eq(USER_ID)))
+            .thenThrow(new FileStorageException(Constants.Files.FAILED_TO_STORE));
+
+        mockMvc.perform(
+            multipart(POST_ME_IMAGE)
+            .file(imageRequest())
+            .principal(authToken)
+        )
+        .andExpect(status().isInternalServerError());
     }
 
     @Test

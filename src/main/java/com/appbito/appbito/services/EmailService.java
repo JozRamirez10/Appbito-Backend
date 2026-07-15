@@ -1,13 +1,15 @@
 package com.appbito.appbito.services;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-
+/**
+ * Email Service.
+ */
 @Service
 public class EmailService {
 
@@ -16,26 +18,32 @@ public class EmailService {
     @Value("${app.verification.email.url}")
     private String verificationUrl;
 
-    public EmailService(JavaMailSender mailSender){
+    public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
 
-    public void sendVerificationEmail(String to, String token){
+    /**
+     * method send email to verification.
+     *
+     * @param to email destinatary.
+     * @param token auth token.
+     */
+    public void sendVerificationEmail(String to, String token) {
+
         String link = verificationUrl + token;
         String subject = "Verify your account";
         String body = "<p>Click the link below to verify your account:</p>"
             + "<a href=\"" + link + "\">Verify your account</a>";
 
-        try{
+        try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, true);
             mailSender.send(message);
-        }catch(MessagingException e){
+        } catch (MessagingException e) {
             e.printStackTrace();
         }
     }
-
 }
