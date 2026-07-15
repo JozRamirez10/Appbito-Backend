@@ -13,8 +13,8 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -97,24 +97,17 @@ public class ImageService {
      * @return image like resource.
      */
     public Resource loadAsResource(String filename) {
-        try {
-            Path file = resolveAndNormalizePath(filename);
+        Path file = resolveAndNormalizePath(filename);
 
-            verifyPathTransversalSecurity(file, Constants.Files.CANNOT_READ);
+        verifyPathTransversalSecurity(file, Constants.Files.CANNOT_READ);
 
-            Resource resource = new UrlResource(file.toUri());
+        Resource resource = new FileSystemResource(file);
 
-            if (resource.exists() || resource.isReadable()) {
-                return resource;
-            } else {
-                throwNotFoundException(filename);
-            }
-
-        } catch (Exception e) {
-            throwNotFoundException(filename);
+        if (resource.exists()) {
+            return resource;
         }
 
-        return null;
+        throw new ResourceNotFoundException(filename);
     }
 
     private Path resolveAndNormalizePath(String filename) {
@@ -126,10 +119,6 @@ public class ImageService {
         if (parent == null || !parent.equals(this.rootLocation)) {
             throw new SecurityException(message);
         }
-    }
-
-    private void throwNotFoundException(String filename) {
-        throw new ResourceNotFoundException(filename);
     }
 
 }
