@@ -385,7 +385,8 @@ class HabitControllerTest {
                 .contentType(APP_JSON)
                 .content(jsonRequest)
         )
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.habits").exists());
     }
 
     @Test
