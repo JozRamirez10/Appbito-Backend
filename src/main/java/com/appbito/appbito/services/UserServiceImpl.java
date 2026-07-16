@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setVerificationToken(token);
-        user.setEnabled(true);
+        user.setEnabled(false);
 
         User userSaved = this.repository.save(user);
         this.emailService.sendVerificationEmail(userSaved.getEmail(), token);
