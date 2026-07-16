@@ -35,6 +35,12 @@ Para desplegar la aplicación completa con bases de datos:
 * **Base de datos:** Actualmente `ddl-auto` está en `update` para que Hibernate cree las tablas automáticamente sin borrar datos.
 * **Correo:** Si el envío de correos falla, revisa que la Contraseña de Aplicación de Google en el `.env` no haya expirado o sido revocada.
 
+## Notas adicionales
+**Generar claves seguras:**
+```
+openssl rand -base64 48
+```
+
 ## Gestión de Base de Datos
 
 ### Respaldo y Restauración (Prod a Local)
