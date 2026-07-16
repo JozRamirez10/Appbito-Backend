@@ -2,6 +2,7 @@ package com.appbito.appbito.services;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -11,16 +12,13 @@ import org.springframework.stereotype.Service;
  * Email Service.
  */
 @Service
+@RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
 
     @Value("${app.verification.email.url}")
     private String verificationUrl;
-
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
 
     /**
      * method send email to verification.
