@@ -1,5 +1,6 @@
 package com.appbito.appbito.constants;
 
+import java.util.List;
 import org.springframework.http.MediaType;
 
 /**
@@ -15,6 +16,10 @@ public final class Constants {
     public static final class App {
 
         public static final MediaType APP_JSON = MediaType.APPLICATION_JSON;
+
+        public static final String ROOT_PATH = "/";
+
+        public static final String ENCODING = "UTF-8";
     }
 
     /**
@@ -26,6 +31,46 @@ public final class Constants {
 
         public static final String HOUR_PATTERN = "HH:mm";
 
+        public static final String MESSAGE = "message";
+
+        public static final String EMAIL = "email";
+
+        public static final String EMPTY_STRING = "";
+
+        public static final int ZERO = 0;
+    }
+
+    /**
+     * Constants to auth.
+     */
+    public static final class Auth {
+
+        public static final String VERIFICATION_TOKEN = "verificationToken";
+
+        public static final String REFRESH_TOKEN = "refresh_token";
+
+        public static final String SAME_SITE = "SameSite";
+
+        public static final String STRICT = "Strict";
+
+        public static final String LOGOUT_SUCCESS = "Logout success";
+
+        public static final String CONTENT_TYPE = "Content-Type";
+
+        public static final String ALL_PATHS = "/**";
+
+        public static final List<String> ALLOWED_METHODS = List.of(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        );
+
+        // minutes * seconds * miliseconds
+        public static final long ACCESS_TOKEN_TIME = 15 * 60 * 1000L;
+
+        // days * minutes * seconds * miliseconds
+        public static final long REFRESH_TOKEN_TIME = 1 * 1440 * 60 * 1000L;
+
+        // days * hours * minutes * seconds
+        public static final Integer COOKIE_MAX_AGE = 1 * 24 * 60 * 60;
     }
 
     /**
@@ -68,7 +113,6 @@ public final class Constants {
         public static final String HABIT_ID_NULL = "The habit ID is required";
 
         public static final String YEARS_LIST_EMPTY = "The years list cannot be empty";
-
     }
 
     /**
@@ -76,7 +120,7 @@ public final class Constants {
      */
     public static final class Errors {
 
-        public static final String ERROR = "Error";
+        public static final String ERROR = "error";
 
         public static final String USER_NOT_FOUND = "User not found";
 
@@ -87,6 +131,10 @@ public final class Constants {
         public static final String MUST_NOT_BE_EMPTY = "Must not be empty";
 
         public static final String NAME_BLANK = "Name is required";
+
+        public static final String LOGIN_ERROR = "Email or password incorrect";
+
+        public static final String UNAUTHORIZED = "Unauthorized";
     }
 
     /**
@@ -100,6 +148,18 @@ public final class Constants {
 
         public static final String ACCESS_DENIED = "Access denied: "
             + "You do not have permission for this resource";
+
+        public static final String USER_NOT_ENABLED = "You must verify your account";
+
+        public static final String INVALID_LOGIN = "Invalid login request format";
+
+        public static final String REFRESH_TOKEN_MISSING = "Refresh token is missing";
+
+        public static final String INVALID_REFRESH_TOKEN = "Invalid refresh token";
+
+        public static final String TOKEN_NOT_FOUND = "Token not found";
+
+        public static final String INVALID_TOKEN = "Invalid token";
     }
 
     /**
