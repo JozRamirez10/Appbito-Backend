@@ -25,6 +25,8 @@ public class DevAuthorizationRules implements AuthorizationRules {
             .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
             .requestMatchers(HttpMethod.GET, "/auth/verify").permitAll()
             .requestMatchers(HttpMethod.GET, "/test/auth/**").permitAll()
+            .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                .permitAll()
             .anyRequest().authenticated();
 
     }
