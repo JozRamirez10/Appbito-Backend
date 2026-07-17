@@ -1,5 +1,6 @@
 # Appbito Backend API - Version 2
 
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
@@ -124,6 +125,12 @@ For active development, the API is self-documented using **OpenAPI (Swagger)**. 
 Complex business logic and stateful testing sequences (such as the complete lifecycle from User Registration to Login, Habit Creation, and Progress Tracking) are visually mapped using Postman Flows.
 
 🔗 **[Explore the Interactive API Flow here](https://jozfamas-team.postman.co/workspace/My-Workspace~87420bfe-9f59-4fc9-89b1-f6f6210014bf/flow/6a5920127ee77d01666d3a35)**
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
