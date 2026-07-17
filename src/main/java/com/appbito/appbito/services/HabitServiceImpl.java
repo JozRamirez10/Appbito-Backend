@@ -1,6 +1,7 @@
 package com.appbito.appbito.services;
 
 import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.requests.HabitDtoUpdateBatchRequest;
 import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.entities.Habit;
 import com.appbito.appbito.entities.User;
@@ -103,26 +104,27 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     @Transactional
-    public List<HabitDtoResponse> updateBatch(List<HabitDtoRequest> habits, Long userId) {
+    public List<HabitDtoResponse> updateBatch(List<HabitDtoUpdateBatchRequest> habits,
+        Long userId) {
 
         if (habits == null || habits.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<Long> habitIds = habits.stream()
-            .map(HabitDtoRequest::getId)
+            .map(HabitDtoUpdateBatchRequest::getId)
             .toList();
 
         List<Habit> habitsBd = this.repository.findAllWithDaysByIds(habitIds);
 
-        Map<Long, HabitDtoRequest> dtoMap = habits.stream()
-            .collect(Collectors.toMap(HabitDtoRequest::getId, dto -> dto));
+        Map<Long, HabitDtoUpdateBatchRequest> dtoMap = habits.stream()
+            .collect(Collectors.toMap(HabitDtoUpdateBatchRequest::getId, dto -> dto));
 
         for (Habit habit : habitsBd) {
 
             AuthUtils.validateOwnership(habit.getUser().getId(), userId);
 
-            HabitDtoRequest dto = dtoMap.get(habit.getId());
+            HabitDtoUpdateBatchRequest dto = dtoMap.get(habit.getId());
             if (dto != null) {
                 habit.setName(dto.getName());
                 habit.setDescription(dto.getDescription());
