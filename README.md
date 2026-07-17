@@ -113,7 +113,11 @@ For active development, the API is self-documented using **OpenAPI (Swagger)**. 
 *   **Access UI:** `http://localhost:8080/swagger-ui.html`
 *   *(Note: For security reasons, Swagger is strictly disabled in the `prod` profile).*
 
-![Swagger UI](docs/assets/swagger-example.png)
+<br>
+<div align="center">
+  <img src="docs/assets/swagger-example.png" alt="Swagger UI" width="500"/>
+</div>
+<br>
 
 **How to run the E2E tests:**
 1. Open Postman.
