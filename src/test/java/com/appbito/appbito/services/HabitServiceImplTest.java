@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.requests.HabitDtoUpdateBatchRequest;
 import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.entities.Habit;
 import com.appbito.appbito.entities.User;
@@ -212,7 +213,8 @@ class HabitServiceImplTest {
     @Test
     void findByTodayEmptyList() {
 
-        when(habitRepository.findByDaysContainingAndUserId(getToday(), USER_ID)).thenReturn(List.of());
+        when(habitRepository.findByDaysContainingAndUserId(getToday(), USER_ID))
+            .thenReturn(List.of());
 
         List<HabitDtoResponse> result = habitService.findByToday(USER_ID);
 
@@ -292,17 +294,17 @@ class HabitServiceImplTest {
         String update1 = "update1";
         String update2 = "update2";
 
-        HabitDtoRequest request1 = HabitDtoRequest.builder()
+        HabitDtoUpdateBatchRequest request1 = HabitDtoUpdateBatchRequest.builder()
             .id(id1)
             .name(update1)
             .build();
 
-        HabitDtoRequest request2 = HabitDtoRequest.builder()
+        HabitDtoUpdateBatchRequest request2 = HabitDtoUpdateBatchRequest.builder()
             .id(id2)
             .name(update2)
             .build();
 
-        List<HabitDtoRequest> requests = List.of(request1, request2);
+        List<HabitDtoUpdateBatchRequest> requests = List.of(request1, request2);
 
         Habit entity1 = Habit.builder().id(id1).name("habit1").user(userEntity).build();
         Habit entity2 = Habit.builder().id(id2).name("habit2").user(userEntity).build();
@@ -346,13 +348,13 @@ class HabitServiceImplTest {
 
         Long phantom_id = 2L;
 
-        HabitDtoRequest req1 = habitToUpdate();
+        HabitDtoUpdateBatchRequest req1 = habitToUpdateBatch();
 
-        HabitDtoRequest ghost = HabitDtoRequest.builder()
+        HabitDtoUpdateBatchRequest ghost = HabitDtoUpdateBatchRequest.builder()
             .id(phantom_id).name("Phantom")
             .build();
 
-        List<HabitDtoRequest> requests = List.of(req1, ghost);
+        List<HabitDtoUpdateBatchRequest> requests = List.of(req1, ghost);
 
         when(habitRepository.findAllWithDaysByIds(List.of(HABIT_ID, phantom_id)))
             .thenReturn(List.of(habitEntity));
@@ -371,8 +373,8 @@ class HabitServiceImplTest {
 
         String fakeName = "fakeHabit";
 
-        HabitDtoRequest req1 = habitToUpdate();
-        List<HabitDtoRequest> requests = List.of(req1);
+        HabitDtoUpdateBatchRequest req1 = habitToUpdateBatch();
+        List<HabitDtoUpdateBatchRequest> requests = List.of(req1);
 
         Habit fakeHabit = Habit.builder().id(999L).name(fakeName).user(userEntity).build();
 
@@ -395,7 +397,7 @@ class HabitServiceImplTest {
 
         Long habit_id = 100L;
 
-        HabitDtoRequest req1 = new HabitDtoRequest();
+        HabitDtoUpdateBatchRequest req1 = habitToUpdateBatch();
         req1.setId(habit_id);
 
         habitEntity.setUser(fakeUser());
@@ -460,7 +462,6 @@ class HabitServiceImplTest {
 
     private HabitDtoRequest habitToSave() {
         return HabitDtoRequest.builder()
-            .id(HABIT_ID)
             .name(HABIT_NAME)
             .days(DAYS_UPDATE)
             .hour(HOUR_UPDATE)
@@ -469,6 +470,14 @@ class HabitServiceImplTest {
 
     private HabitDtoRequest habitToUpdate() {
         return HabitDtoRequest.builder()
+            .name(HABIT_NAME_UPDATE)
+            .days(DAYS_UPDATE)
+            .hour(HOUR_UPDATE)
+            .build();
+    }
+
+    private HabitDtoUpdateBatchRequest habitToUpdateBatch() {
+        return HabitDtoUpdateBatchRequest.builder()
             .id(HABIT_ID)
             .name(HABIT_NAME_UPDATE)
             .days(DAYS_UPDATE)

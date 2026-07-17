@@ -21,8 +21,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class HabitDtoRequest {
 
-    private Long id;
-
     @NotBlank(message = Constants.Errors.NAME_BLANK)
     private String name;
 
