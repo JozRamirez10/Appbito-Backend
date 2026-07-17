@@ -13,6 +13,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@Tag(name = "Auths", description = "Endpoints to auth CRUDS")
 public class AuthController {
 
     private static final String REFRESH_TOKEN = Constants.Auth.REFRESH_TOKEN;
@@ -68,6 +71,7 @@ public class AuthController {
      *
      * @return new AcessToken or Unauthorized Exception.
      */
+    @Operation(summary = "Refresh token to requests")
     @PostMapping("/refresh")
     public ResponseEntity<Void> refreshToken(
         @CookieValue(value = REFRESH_TOKEN, required = false) String refreshToken,
@@ -104,6 +108,7 @@ public class AuthController {
      *
      * @return success logout response.
      */
+    @Operation(summary = "Logout")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(HttpServletResponse response) {
         Cookie refreshCookie = cookieExpiration(REFRESH_TOKEN);
@@ -118,6 +123,7 @@ public class AuthController {
      *
      * @return userDtoResponse.
      */
+    @Operation(summary = "Validate 'verificate_token' of user")
     @GetMapping("/verify")
     public ResponseEntity<UserDtoResponse> verifyAccount(@RequestParam("token") String token) {
 

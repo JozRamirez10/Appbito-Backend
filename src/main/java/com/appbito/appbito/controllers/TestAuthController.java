@@ -3,6 +3,8 @@ package com.appbito.appbito.controllers;
 import com.appbito.appbito.constants.Constants;
 import com.appbito.appbito.exceptions.ResourceNotFoundException;
 import com.appbito.appbito.repositories.UserRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/test/auth")
 @Profile({"dev", "test"})
+@Tag(name = "Test Auth", description = "Endpoints to get token (Only dev and test)")
 @RequiredArgsConstructor
 public class TestAuthController {
 
@@ -31,6 +34,7 @@ public class TestAuthController {
      *
      * @return string token.
      */
+    @Operation(summary = "Get verification token by email")
     @GetMapping("/token")
     public ResponseEntity<Map<String, String>> getVerificationToken(
         @RequestParam("email") String email) {

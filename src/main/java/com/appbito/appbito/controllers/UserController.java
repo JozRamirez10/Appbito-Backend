@@ -10,6 +10,8 @@ import com.appbito.appbito.exceptions.ResourceNotFoundException;
 import com.appbito.appbito.services.ImageService;
 import com.appbito.appbito.services.UserService;
 import com.appbito.appbito.utils.AuthUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Tag(name = "Users", description = "Endpoints to user CRUD")
 public class UserController {
 
     private static final String USER_NOT_FOUND = Constants.Errors.USER_NOT_FOUND;
@@ -48,6 +51,7 @@ public class UserController {
      *
      * @return a list of UserDtoResponse.
      */
+    @Operation(summary = "Get all users (Only for dev and tests)")
     @GetMapping
     public ResponseEntity<List<UserDtoResponse>> list() {
         return ResponseEntity.ok(this.service.findAll());
@@ -60,6 +64,7 @@ public class UserController {
      *
      * @return userDtoResponse.
      */
+    @Operation(summary = "Get an user by id (Only user id authenticated)")
     @GetMapping("/me")
     public ResponseEntity<UserDtoResponse> byId(Authentication authentication) {
 
@@ -78,6 +83,7 @@ public class UserController {
      *
      * @return user's image like resource.
      */
+    @Operation(summary = "Get an user image (Only user id authenticated)")
     @GetMapping("/me/image")
     public ResponseEntity<Resource> getImage(Authentication authentication) {
 
@@ -106,6 +112,7 @@ public class UserController {
      *
      * @return userDtoResponse.
      */
+    @Operation(summary = "Create an user")
     @PostMapping
     public ResponseEntity<UserDtoResponse> create(@Valid @RequestBody UserDtoRequest user) {
 
@@ -121,6 +128,7 @@ public class UserController {
      *
      * @return userDtoResponse.
      */
+    @Operation(summary = "Update user image (Only user authenticated)")
     @PostMapping("/me/image")
     public ResponseEntity<UserDtoResponse> uploadProfileImage(
         @RequestParam("image") MultipartFile file,
@@ -143,6 +151,7 @@ public class UserController {
      *
      * @return userDtoResponse.
      */
+    @Operation(summary = "Update an user (Only user authenticated")
     @PutMapping("/me")
     public ResponseEntity<UserDtoResponse> update(@Valid @RequestBody UserDtoUpdateRequest user,
         Authentication authentication) {
@@ -163,6 +172,7 @@ public class UserController {
      *
      * @return void.
      */
+    @Operation(summary = "Update user password (Only user authenticated)")
     @PutMapping("/me/password")
     public ResponseEntity<Void> updatePassword(
         @Valid @RequestBody UserDtoUpdatePasswordRequest request,
@@ -182,6 +192,7 @@ public class UserController {
      *
      * @return void.
      */
+    @Operation(summary = "Delete an user (Only user authenticated)")
     @DeleteMapping("/me")
     public ResponseEntity<Void> delete(Authentication authentication) {
 
@@ -202,6 +213,7 @@ public class UserController {
      *
      * @return void.
      */
+    @Operation(summary = "Delete an user validating your password (Only user authenticated)")
     @DeleteMapping("/me/password")
     public ResponseEntity<Void> confirmDelete(@Valid @RequestBody UserDtoDeleteRequest userDto,
         Authentication authentication) {

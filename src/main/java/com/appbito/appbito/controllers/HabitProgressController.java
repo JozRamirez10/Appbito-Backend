@@ -6,6 +6,8 @@ import com.appbito.appbito.dtos.responses.HabitProgressDtoMonthlyResponse;
 import com.appbito.appbito.dtos.responses.HabitProgressDtoResponse;
 import com.appbito.appbito.services.HabitProgressService;
 import com.appbito.appbito.utils.AuthUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/habitsProgress")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "HabitProgress", description = "Endpoints to habit progress CRUD")
 public class HabitProgressController {
 
     private final HabitProgressService service;
@@ -44,6 +47,7 @@ public class HabitProgressController {
      *
      * @return a list of habitProgressDtoResponse.
      */
+    @Operation(summary = "Get habit progresses by habit id")
     @GetMapping("/habit/{id}")
     public ResponseEntity<List<HabitProgressDtoResponse>> byIdHabit(@PathVariable Long id,
         Authentication authentication) {
@@ -60,6 +64,7 @@ public class HabitProgressController {
      *
      * @return habitProgressDtoResponse
      */
+    @Operation(summary = "Get a habit progress by id")
     @GetMapping("/{id}")
     public ResponseEntity<HabitProgressDtoResponse> byId(@PathVariable Long id,
         Authentication authentication) {
@@ -78,6 +83,7 @@ public class HabitProgressController {
      *
      * @return a list of habitProgressDtoResponse.
      */
+    @Operation(summary = "Get habit progresses within a period time")
     @GetMapping("/habit/{id}/range")
     public ResponseEntity<List<HabitProgressDtoResponse>> byIdHabitAndDateRange(
         @PathVariable Long id,
@@ -100,6 +106,7 @@ public class HabitProgressController {
      *
      * @return a list of habitProgressDtoMonthlyResponse.
      */
+    @Operation(summary = "Get total times performed in a specific month of a habit ids list")
     @GetMapping("/monthly")
     public ResponseEntity<List<HabitProgressDtoMonthlyResponse>> getTotalTimesPerformedByMonths(
         @RequestParam List<Integer> years, @RequestParam List<Long> habitIds,
@@ -119,6 +126,7 @@ public class HabitProgressController {
      *
      * @return habitProgressDtoResponse.
      */
+    @Operation(summary = "Create a habit progress")
     @PostMapping
     public ResponseEntity<HabitProgressDtoResponse> create(
         @Valid @RequestBody HabitProgressDtoRequest habitProgressDto,
@@ -138,6 +146,7 @@ public class HabitProgressController {
      *
      * @return habitProgressDtoResponse.
      */
+    @Operation(summary = "Update a habit progress")
     @PutMapping("/{id}")
     public ResponseEntity<HabitProgressDtoResponse> update(
         @Valid @RequestBody HabitProgressDtoUpdateRequest habitProgressDto, @PathVariable Long id,
@@ -155,6 +164,7 @@ public class HabitProgressController {
      *
      * @return void.
      */
+    @Operation(summary = "Delete a habit progress by id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
 
@@ -171,6 +181,7 @@ public class HabitProgressController {
      *
      * @return integer.
      */
+    @Operation(summary = "Get a streak of a habit by id")
     @GetMapping("/habit/{id}/streak")
     public ResponseEntity<Integer> getHabitStreak(@PathVariable Long id,
         Authentication authentication) {

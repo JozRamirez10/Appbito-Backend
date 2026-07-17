@@ -7,6 +7,8 @@ import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.exceptions.ResourceNotFoundException;
 import com.appbito.appbito.services.HabitService;
 import com.appbito.appbito.utils.AuthUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/habits")
 @RequiredArgsConstructor
 @Validated
+@Tag(name = "Habits", description = "Endpoints to habit CRUD")
 public class HabitController {
 
     private static final String HABIT_NOT_FOUND = Constants.Errors.HABIT_NOT_FOUND;
@@ -42,6 +45,7 @@ public class HabitController {
      *
      * @return a list of habitDtoResponse.
      */
+    @Operation(summary = "Get all habits", description = "Only for dev and tests")
     @GetMapping
     public ResponseEntity<List<HabitDtoResponse>> list() {
         return ResponseEntity.ok(this.service.findAll());
@@ -55,6 +59,7 @@ public class HabitController {
      *
      * @return habitDtoResponse.
      */
+    @Operation(summary = "Get a habit by id")
     @GetMapping("/{id}")
     public ResponseEntity<HabitDtoResponse> byId(@PathVariable Long id,
         Authentication authentication) {
@@ -74,6 +79,7 @@ public class HabitController {
      *
      * @return a list of habitDtoResponse.
      */
+    @Operation(summary = "Get me habits")
     @GetMapping("/me")
     public ResponseEntity<List<HabitDtoResponse>> byUserId(Authentication authentication) {
 
@@ -89,6 +95,7 @@ public class HabitController {
      *
      * @return a list of habitDtoResponse.
      */
+    @Operation(summary = "Get me habits for today")
     @GetMapping("/today")
     public ResponseEntity<List<HabitDtoResponse>> byToday(Authentication authentication) {
 
@@ -105,6 +112,7 @@ public class HabitController {
      *
      * @return habitDtoResponse.
      */
+    @Operation(summary = "Create a habit")
     @PostMapping
     public ResponseEntity<HabitDtoResponse> create(@Valid @RequestBody HabitDtoRequest habit,
         Authentication authentication) {
@@ -124,6 +132,7 @@ public class HabitController {
      *
      * @return habitDtoResponse.
      */
+    @Operation(summary = "Update a habit by id")
     @PutMapping("/{id}")
     public ResponseEntity<HabitDtoResponse> update(@Valid @RequestBody HabitDtoRequest habit,
         @PathVariable Long id, Authentication authentication) {
@@ -144,6 +153,7 @@ public class HabitController {
      *
      * @return list of habitDtoResponse.
      */
+    @Operation(summary = "Update a batch of habits")
     @PutMapping("/batch")
     public ResponseEntity<List<HabitDtoResponse>> updateBatch(
         @Valid @NotEmpty @RequestBody List<HabitDtoUpdateBatchRequest> habits,
@@ -162,6 +172,7 @@ public class HabitController {
      *
      * @return void responseEntity.
      */
+    @Operation(summary = "Delete habit by id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
 
