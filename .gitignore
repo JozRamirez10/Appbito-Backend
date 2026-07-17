@@ -16,7 +16,6 @@ buildNumber.properties
 # ==========================================
 # Visual Studio Code
 .vscode/*
-!.vscode/launch.json
 
 # ==========================================
 # Operating System
