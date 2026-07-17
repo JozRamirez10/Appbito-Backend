@@ -2,6 +2,7 @@ package com.appbito.appbito.controllers;
 
 import com.appbito.appbito.constants.Constants;
 import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.requests.HabitDtoUpdateBatchRequest;
 import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.exceptions.ResourceNotFoundException;
 import com.appbito.appbito.services.HabitService;
@@ -145,7 +146,8 @@ public class HabitController {
      */
     @PutMapping("/batch")
     public ResponseEntity<List<HabitDtoResponse>> updateBatch(
-        @Valid @NotEmpty @RequestBody List<HabitDtoRequest> habits, Authentication authentication) {
+        @Valid @NotEmpty @RequestBody List<HabitDtoUpdateBatchRequest> habits,
+        Authentication authentication) {
 
         Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
 
