@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Set;
@@ -24,6 +25,7 @@ import lombok.NoArgsConstructor;
 public class HabitDtoUpdateBatchRequest {
 
     @Schema(example = "24", description = "Habit id to update")
+    @NotNull(message = Constants.Errors.ID_NULL)
     private Long id;
 
     @Schema(example = "Read a book", description = "Short and descriptive habit name")
