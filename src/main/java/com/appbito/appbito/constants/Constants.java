@@ -92,7 +92,7 @@ public final class Constants {
 
         public static final String INCORRECT_PASSWORD = "Incorrect password";
 
-        public static final String PASSWORD_DOES_NOT_MATCH = "Password does not match";
+        public static final String PASSWORD_DOES_NOT_MATCH = "Password is incorrect";
     }
 
     /**
@@ -129,6 +129,8 @@ public final class Constants {
         public static final String HABIT_PROGRESS_NOT_FOUND = "Habit Progress not found";
 
         public static final String MUST_NOT_BE_EMPTY = "Must not be empty";
+
+        public static final String ID_NULL = "ID is required";
 
         public static final String NAME_BLANK = "Name is required";
 
