@@ -1,26 +1,31 @@
 package com.appbito.appbito.services;
 
+import com.appbito.appbito.dtos.requests.UserDtoRequest;
+import com.appbito.appbito.dtos.requests.UserDtoUpdateRequest;
+import com.appbito.appbito.dtos.responses.UserDtoResponse;
 import java.util.List;
 import java.util.Optional;
 
-import com.appbito.appbito.entities.User;
-import com.appbito.appbito.entities.UserDTO;
-
+/**
+ * User Service.
+ */
 public interface UserService {
-    List<User> findAll();
-    Optional<UserDTO> findById(Long id);
-    User save(User user);
-    Optional<UserDTO> saveImage(String email, String image);
-    Optional<UserDTO> update(UserDTO user, Long id);
-    void deleteById(Long id);
 
-    boolean existsById(Long id);
-    boolean existsByEmail(String email);
-    boolean existsByEmailAndId(String email, Long id);
+    List<UserDtoResponse> findAll();
 
-    Optional<User> findByIdAndPassword(Long id, String password);
-    Optional<UserDTO> updatePassword(Long id, String oldPassword, String newPassword);
-    
-    Optional<User> findByVerificationToken(String token);
-    Optional<User> updateRegister(User user);
+    Optional<UserDtoResponse> findById(Long id);
+
+    UserDtoResponse save(UserDtoRequest user);
+
+    Optional<UserDtoResponse> update(UserDtoUpdateRequest user, Long id);
+
+    void updatePassword(Long id, String oldPassword, String newPassword);
+
+    boolean deleteById(Long id);
+
+    void deleteByIdAndPassword(Long id, String password);
+
+    UserDtoResponse saveImage(Long id, String imageName);
+
+    Optional<UserDtoResponse> enableUserByVerificationToken(String token);
 }

@@ -1,20 +1,32 @@
 package com.appbito.appbito.services;
 
+import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.requests.HabitDtoUpdateBatchRequest;
+import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import java.util.List;
 import java.util.Optional;
 
-import com.appbito.appbito.entities.HabitDTO;
-
+/**
+ * Habit Service.
+ */
 public interface HabitService {
-    List<HabitDTO> findAll();
-    Optional<HabitDTO> findById(Long id);
-    HabitDTO save(HabitDTO habit);
-    Optional<HabitDTO> update(HabitDTO habit, Long id);
-    void deleteById(Long id);
-    
-    List<HabitDTO> findByToday();
-    List<HabitDTO> findByUserId(Long id);  
-    List<HabitDTO> updateBatch(List<HabitDTO> habits);
 
-    List<HabitDTO> migrateProgressData();
+    List<HabitDtoResponse> findAll();
+
+    Optional<HabitDtoResponse> findById(Long id);
+
+    Optional<HabitDtoResponse> findByIdAndUserId(Long id, Long userId);
+
+    List<HabitDtoResponse> findByToday(Long userId);
+
+    List<HabitDtoResponse> findByUserId(Long id);
+
+    HabitDtoResponse save(HabitDtoRequest habit, Long userId);
+
+    Optional<HabitDtoResponse> update(HabitDtoRequest habit, Long id, Long userId);
+
+    List<HabitDtoResponse> updateBatch(List<HabitDtoUpdateBatchRequest> habits, Long userId);
+
+    boolean deleteById(Long id, Long userId);
+
 }

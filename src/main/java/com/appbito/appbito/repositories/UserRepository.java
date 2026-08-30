@@ -1,27 +1,30 @@
 package com.appbito.appbito.repositories;
 
+import com.appbito.appbito.dtos.UserDtoCredentials;
+import com.appbito.appbito.entities.User;
 import java.util.Optional;
-
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.appbito.appbito.entities.User;
-import com.appbito.appbito.entities.UserCredentialsDTO;
+/**
+ * User Repository.
+ */
+public interface UserRepository extends JpaRepository<User, Long> {
 
-public interface UserRepository extends CrudRepository<User, Long>{
-
-    @Query("SELECT new com.appbito.appbito.entities.UserCredentialsDTO(u.id, u.email, u.password, u.enabled) FROM User u WHERE u.email = :email")
-    Optional<UserCredentialsDTO> findCredentialsByEmail(@Param("email") String email);
-    
-    Optional<User> findByEmail(String email);
+    @Query("SELECT new com.appbito.appbito.dtos.UserDtoCredentials( "
+        + "u.id, u.email, u.password, u.enabled) FROM User u WHERE u.email = :email")
+    Optional<UserDtoCredentials> findCredentialsByEmail(@Param("email") String email);
 
     Optional<User> findByVerificationToken(String token);
 
-    @SuppressWarnings("null")
-    boolean existsById(Long id);
+    @Query("SELECT u.verificationToken FROM User u WHERE u.email = :email")
+    Optional<String> findVerificationTokenByEmail(@Param("email") String email);
 
     boolean existsByEmail(String email);
 
-    boolean existsByEmailAndId(String email, Long id);
+    @Modifying
+    @Query("DELETE FROM User u WHERE u.id = :id")
+    void deleteUserByIdDirectly(@Param("id") Long id);
 }

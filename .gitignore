@@ -16,7 +16,6 @@ buildNumber.properties
 # ==========================================
 # Visual Studio Code
 .vscode/*
-!.vscode/launch.json
 
 # ==========================================
 # Operating System
@@ -30,11 +29,19 @@ buildNumber.properties
 .env*
 !.env.example
 
+# ==========================================
+# SQL
+# ==========================================
+BKP*.sql
+
 # Compiled class file
 *.class
 
 # Log file
 *.log
+*.log.*.gz
+/logs/
+/log/
 
 # BlueJ files
 *.ctxt

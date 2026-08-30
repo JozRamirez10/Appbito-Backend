@@ -17,11 +17,18 @@ services:
 
   appbito-backend:
     container_name: appbito-backend
-    image: jmramglez/appbito-backend
+    build: .
     ports:
-      - "8001:8001"
+      - "8080:8080"
+    env_file:
+      - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m" # if has 10MB, it cuts off
+        max-file: "3"   # Only save the last 3 files
     volumes:
       - ./uploads:/app/uploads
     networks:
@@ -29,7 +36,7 @@ services:
     depends_on:
       - mysql
     restart: always
-  
+
 volumes:
   data-mysql:
     name: data-mysql

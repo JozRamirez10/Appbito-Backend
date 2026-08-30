@@ -1,0 +1,1683 @@
+{
+  "info": {
+    "_postman_id": "d32ab602-ce9c-47c4-8420-1752348f56aa",
+    "name": "Appbito",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "28963125"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "",
+                  "    var authHeader = pm.response.headers.get(\"Authorization\");",
+                  "",
+                  "    if (authHeader) {",
+                  "",
+                  "        var miToken = authHeader.replace(\"Bearer \", \"\").trim();",
+                  "",
+                  "        pm.environment.set(\"jwt_token\", miToken);",
+                  "",
+                  "        console.log(\"¡Token extraído de los headers y guardado con éxito!\");",
+                  "    } else {",
+                  "        console.log(\"El login fue 200, pero no venía el header 'Authorization'.\");",
+                  "    }",
+                  "",
+                  "} else {",
+                  "    console.log(\"El login falló, abortando la prueba...\");",
+                  "    postman.setNextRequest(null);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{current_user_email}}\",\n  \"password\": \"{{current_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "verificationToken",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set(\"current_verification_token\", response.verificationToken);",
+                  "",
+                  "} else {",
+                  "    console.log(\"Token verification falló, abortando la prueba...\");",
+                  "    postman.setNextRequest(null);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/test/auth/token?email={{current_user_email}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "test",
+                "auth",
+                "token"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{current_user_email}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "verify",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "",
+                  "    var current_email = pm.environment.get(\"current_user_email\")",
+                  "    console.log(\"La cuenta \" + current_email + \" ha sido habilitada\" )",
+                  "",
+                  "} else {",
+                  "    console.log(\"El token no se pudo validar\");",
+                  "    postman.setNextRequest(null);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/auth/verify?token={{current_verification_token}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "auth",
+                "verify"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{current_verification_token}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    var authHeader = pm.response.headers.get(\"Authorization\");",
+                  "",
+                  "    if (authHeader) {",
+                  "        ",
+                  "        var newAccessToken = authHeader.replace(\"Bearer \", \"\").trim();",
+                  "        pm.collectionVariables.set(\"jwt_token\", newAccessToken);",
+                  "",
+                  "        console.log(\"¡Refresh Token exitoso! Nuevo Access Token guardado.\");",
+                  "    } else {",
+                  "        console.log(\"Error: El refresh fue 200, pero no venía el header 'Authorization'.\");",
+                  "        postman.setNextRequest(null);",
+                  "    }",
+                  "} else {",
+                  "    console.log(\"El refresh falló, abortando la prueba...\");",
+                  "    postman.setNextRequest(null);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/auth/refresh",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains success message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql(\"Logout success\"); ",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.unset(\"jwt_token\");",
+                  "    console.log(\"Sesión cerrada y variables limpiadas.\");",
+                  "} else {",
+                  "    console.log(\"El logout falló.\");",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base}}/auth/logout",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "User-create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user ID and email\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData.email).to.eql(\"test@email.com\");",
+                  "",
+                  "    // Guardamos el email y el password inicial para usarlos más adelante",
+                  "    pm.environment.set(\"current_user_email\", jsonData.email);",
+                  "    pm.environment.set(\"current_password\", \"Password123!\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Subject\",\n    \"lastname\": \"of Test\",\n    \"birthDate\": \"2003-02-01\",\n    \"email\": \"test@email.com\",\n    \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User-findMe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"User data matches created data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.email).to.eql(pm.environment.get(\"current_user_email\"));",
+                  "    pm.expect(jsonData.name).to.eql(\"Subject\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User-updateMe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"User name was updated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.name).to.eql(\"Updated Name\");",
+                  "    pm.expect(jsonData.lastname).to.eql(\"Updated Lastname\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"lastname\": \"Updated Lastname\",\n  \"birthDate\": \"1995-05-05\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User-updateMePassword",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Actualizamos la variable con la nueva contraseña para el delete posterior",
+                  "pm.environment.set(\"current_password\", \"NewPassword456!\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"{{current_password}}\",\n  \"newPassword\": \"NewPassword456!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me/password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User-uploadMeImage",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has image filename\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('image');",
+                  "    pm.expect(jsonData.image).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "uuid": "632f38eb-57ab-42dd-8a23-0a9b38c5ad91",
+                  "src": "postman-cloud:///1f17cfe8-d32c-4c50-9d4d-282236b00c71"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me/image",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "image"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User-findMeImage",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Type is image/jpeg\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\", \"image/jpeg\");",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Disposition is present\", function () {",
+                  "    pm.response.to.have.header(\"Content-Disposition\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/me/image",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "image"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User-findAll",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array of users\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Array.isArray(jsonData)).to.be.true;",
+                  "    pm.expect(jsonData.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User-deleteMePassword",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204 No Content\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "// Limpieza de variables de entorno al finalizar el flujo",
+                  "pm.environment.unset(\"current_user_email\");",
+                  "pm.environment.unset(\"current_password\");",
+                  "pm.environment.unset(\"token\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{current_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me/password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me",
+                "password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User-deleteMe",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Habits",
+      "item": [
+        {
+          "name": "Habit-create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Habit has a valid ID\", function () {",
+                  "    pm.expect(jsonData).to.have.property(\"id\");",
+                  "    pm.expect(jsonData.id).to.be.a(\"number\");",
+                  "});",
+                  "",
+                  "pm.environment.set(\"current_habit_id\", jsonData.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const moment = require('moment');",
+                  "",
+                  "const todayDayName = moment().locale('en').format('dddd').toUpperCase();",
+                  "pm.environment.set(\"todayDayName\", todayDayName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Prueba\",\n    \"description\": \"Test for days\",\n    \"hour\": \"18:00\",\n    \"days\": [\n        \"{{todayDayName}}\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/habits",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habits"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habit-findAll",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"response is a list\", function() {",
+                  "    ",
+                  "    pm.expect(jsonData).to.be.an(\"array\"); ",
+                  "});",
+                  "",
+                  "pm.test(\"Habits exists in BD\", function() {",
+                  "    pm.expect(jsonData.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Habit has ID and name\", function() {",
+                  "    if (jsonData.length > 0 ) {",
+                  "        pm.expect(jsonData[0]).to.have.property(\"id\");",
+                  "        pm.expect(jsonData[0]).to.have.property(\"name\");",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habits",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habits"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habit-findById",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "var expectedId = pm.environment.get(\"current_habit_id\");",
+                  "",
+                  "pm.test(\"Return right ID\", function () {",
+                  "    pm.expect(jsonData.id).to.eql(expectedId);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habits/{{current_habit_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habits",
+                "{{current_habit_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habit-findByUserId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"The response is an array\", function () {",
+                  "    pm.expect(jsonData).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"The array is not empty\", function () {",
+                  "    pm.expect(jsonData.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habits/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habits",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habit-findByToday",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"The response is an array\", function () {",
+                  "    pm.expect(jsonData).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "if (jsonData.length > 0) {",
+                  "    pm.test(\"The habits have and ID and name\", function () {",
+                  "        pm.expect(jsonData[0]).to.have.property(\"id\");",
+                  "        pm.expect(jsonData[0]).to.have.property(\"name\");",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habits/today",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habits",
+                "today"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habit-update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"The name was updated\", function () {",
+                  "    pm.expect(jsonData.name).to.eql(\"Name updated\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const moment = require('moment');",
+                  "",
+                  "const tomorrowDayName = moment().add(1, 'days').locale('en').format('dddd').toUpperCase();",
+                  "pm.environment.set(\"tomorrowDayName\", tomorrowDayName);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Name updated\",\n    \"description\": \"This habit will be updated\",\n    \"hour\": \"17:00\",\n    \"days\": [\n        \"{{todayDayName}}\",\n        \"{{tomorrowDayName}}\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/habits/{{current_habit_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habits",
+                "{{current_habit_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habit-updateBatch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"The response is an array\", function () {",
+                  "    pm.expect(jsonData).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "var expectedId = parseInt(pm.environment.get(\"current_habit_id\"));",
+                  "",
+                  "pm.test(\"El hábito de prueba fue actualizado en el batch\", function () {",
+                  "    var updatedHabit = jsonData.find(habit => habit.id === expectedId);",
+                  "    pm.expect(updatedHabit).to.not.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"id\": {{current_habit_id}},\n        \"name\": \"Habit update batch\",\n        \"description\": \"This habit will be updated in batch\",\n        \"hour\": null,\n        \"days\": [\n            \"{{todayDayName}}\",\n            \"{{tomorrowDayName}}\"\n        ]\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/habits/batch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habits",
+                "batch"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Habit-deleteById",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.environment.unset(\"current_habit_id\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habits/{{current_habit_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habits",
+                "{{current_habit_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HabitProgress",
+      "item": [
+        {
+          "name": "HabitProgress-create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is correct and saves Progress ID\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData.date).to.eql(pm.environment.get(\"currentDate\"));",
+                  "    pm.expect(jsonData.timesPerformed).to.eql(2);",
+                  "    ",
+                  "    pm.expect(jsonData.habitId).to.eql(parseInt(pm.environment.get(\"current_habit_id\")));",
+                  "",
+                  "    pm.environment.set(\"current_habit_progress_id\", jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const moment = require('moment');",
+                  "",
+                  "const currentDate = moment().format('YYYY-MM-DD');",
+                  "",
+                  "pm.environment.set(\"currentDate\", currentDate);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"date\": \"{{currentDate}}\",\n    \"timesPerformed\": 2,\n    \"note\": \"test progress\",\n    \"habitId\": {{current_habit_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/habitsProgress",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habitsProgress"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HabitProgress-byIdHabit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array and is not empty\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.be.above(0); // 1 length",
+                  "});",
+                  "",
+                  "pm.test(\"The list contains the recently created habit progress\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    const expectedHabitId = parseInt(pm.environment.get(\"current_habit_id\"));",
+                  "    const expectedProgressId = parseInt(pm.environment.get(\"current_habit_progress_id\"));",
+                  "    ",
+                  "    const createdProgress = jsonData.find(progress => progress.id === expectedProgressId);",
+                  "    ",
+                  "    pm.expect(createdProgress).to.not.be.undefined;",
+                  "    ",
+                  "    pm.expect(createdProgress.habitId).to.eql(expectedHabitId);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habitsProgress/habit/{{current_habit_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habitsProgress",
+                "habit",
+                "{{current_habit_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HabitProgress-byId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains the correct habit progress details\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    const expectedProgressId = parseInt(pm.environment.get(\"current_habit_progress_id\"));",
+                  "    const expectedHabitId = parseInt(pm.environment.get(\"current_habit_id\"));",
+                  "    ",
+                  "    pm.expect(jsonData).to.be.an('object');",
+                  "    ",
+                  "    pm.expect(jsonData.id).to.eql(expectedProgressId);",
+                  "    pm.expect(jsonData.habitId).to.eql(expectedHabitId);",
+                  "    ",
+                  "    pm.expect(jsonData).to.have.property('date');",
+                  "    pm.expect(jsonData).to.have.property('timesPerformed');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habitsProgress/{{current_habit_progress_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habitsProgress",
+                "{{current_habit_progress_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HabitProgress-byIdHabitAndDateRange",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const moment = require('moment');",
+                  "",
+                  "const startDate = moment().subtract(1, 'days').format('YYYY-MM-DD');",
+                  "const endDate = moment().add(1, 'days').format('YYYY-MM-DD');",
+                  "",
+                  "pm.environment.set(\"startDate\", startDate);",
+                  "pm.environment.set(\"endDate\", endDate);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"The list contains the habit progress within the date range\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    const expectedProgressId = parseInt(pm.environment.get(\"current_habit_progress_id\"));",
+                  "    const expectedHabitId = parseInt(pm.environment.get(\"current_habit_id\"));",
+                  "    ",
+                  "    const createdProgress = jsonData.find(progress => progress.id === expectedProgressId);",
+                  "    ",
+                  "    pm.expect(createdProgress).to.not.be.undefined;",
+                  "    ",
+                  "    pm.expect(createdProgress.habitId).to.eql(expectedHabitId);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habitsProgress/habit/{{current_habit_id}}/range?startDate={{startDate}}&endDate={{endDate}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habitsProgress",
+                "habit",
+                "{{current_habit_id}}",
+                "range"
+              ],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "{{startDate}}"
+                },
+                {
+                  "key": "endDate",
+                  "value": "{{endDate}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HabitProgress-getTotalTimesPerformedByMonths",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const moment = require('moment');",
+                  "",
+                  "const currentYear = moment().format('YYYY');",
+                  "const currentMonth = moment().format('M'); ",
+                  "",
+                  "pm.environment.set(\"currentYear\", currentYear);",
+                  "pm.environment.set(\"currentMonth\", currentMonth);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Report contains data for the current month and year\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    const expectedHabitId = parseInt(pm.environment.get(\"current_habit_id\"));",
+                  "    const expectedYear = parseInt(pm.environment.get(\"currentYear\"));",
+                  "    const expectedMonth = parseInt(pm.environment.get(\"currentMonth\"));",
+                  "    ",
+                  "    const monthlyReport = jsonData.find(report => ",
+                  "        report.habitId === expectedHabitId && ",
+                  "        report.year === expectedYear && ",
+                  "        report.month === expectedMonth",
+                  "    );",
+                  "    ",
+                  "    pm.expect(monthlyReport).to.not.be.undefined;",
+                  "    ",
+                  "    pm.expect(monthlyReport.totalTimesPerformed).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/habitsProgress/monthly?years={{currentYear}}&habitIds={{current_habit_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habitsProgress",
+                "monthly"
+              ],
+              "query": [
+                {
+                  "key": "years",
+                  "value": "{{currentYear}}"
+                },
+                {
+                  "key": "habitIds",
+                  "value": "{{current_habit_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HabitProgress-getHabitStreak",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is a valid streak number\", function () {",
+                  "    ",
+                  "    const streak = pm.response.json();",
+                  "    ",
+                  "    pm.expect(streak).to.be.a('number');",
+                  "    ",
+                  "    pm.expect(streak).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habitsProgress/habit/{{current_habit_id}}/streak",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habitsProgress",
+                "habit",
+                "{{current_habit_id}}",
+                "streak"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HabitProgress-update",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Habit progress was updated successfully\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    ",
+                  "    const expectedProgressId = parseInt(pm.environment.get(\"current_habit_progress_id\"));",
+                  "    const expectedHabitId = parseInt(pm.environment.get(\"current_habit_id\"));",
+                  "    ",
+                  "    pm.expect(jsonData.id).to.eql(expectedProgressId);",
+                  "    pm.expect(jsonData.habitId).to.eql(expectedHabitId);",
+                  "    ",
+                  "    pm.expect(jsonData.timesPerformed).to.eql(3);",
+                  "    pm.expect(jsonData.note).to.eql(\"progress update\");",
+                  "    ",
+                  "    pm.expect(jsonData).to.have.property('date');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"timesPerformed\": 3,\n    \"note\": \"progress update\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/habitsProgress/{{current_habit_progress_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habitsProgress",
+                "{{current_habit_progress_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "HabitProgress-delete",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204 No Content\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body is empty\", function () {",
+                  "    pm.expect(pm.response.text()).to.be.empty;",
+                  "});",
+                  "",
+                  "pm.environment.unset(\"current_habit_progress_id\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/habitsProgress/{{current_habit_progress_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "habitsProgress",
+                "{{current_habit_progress_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "http://localhost:8080/api/users/1",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"Sujeto\",\n    \"lastname\": \"de Pruebas\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/users/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "jwt_token",
+      "value": ""
+    }
+  ]
+}

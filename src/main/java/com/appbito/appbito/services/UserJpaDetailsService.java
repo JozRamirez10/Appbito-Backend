@@ -1,32 +1,47 @@
 package com.appbito.appbito.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.appbito.appbito.auth.models.CustomUserDetails;
+import com.appbito.appbito.constants.Constants;
+import com.appbito.appbito.dtos.UserDtoCredentials;
+import com.appbito.appbito.exceptions.AccountNotVerifiedException;
+import com.appbito.appbito.repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.appbito.appbito.entities.CustomUserDetails;
-import com.appbito.appbito.entities.UserCredentialsDTO;
-import com.appbito.appbito.repositories.UserRepository;
-
+/**
+ * User Jpa Details Service.
+ */
 @Service
-public class UserJpaDetailsService implements UserDetailsService{
+@RequiredArgsConstructor
+public class UserJpaDetailsService implements UserDetailsService {
 
-    @Autowired  
-    private UserRepository repository;
+    private final UserRepository repository;
 
+    /**
+     * load user credentials from database and constructs a CustomUserDetails object.
+     *
+     * @param email identifyng the user.
+     *
+     * @return userDetails.
+     *
+     * @throws UsernameNotFounException if the user could not be found.
+     * @throws AccountNotVerifiedException if the user account is not enabled.
+     */
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserCredentialsDTO user = this.repository.findCredentialsByEmail(email)
-            .orElseThrow( () -> new UsernameNotFoundException("User not found"));
-        
-        if(!user.isEnabled()){
-            throw new IllegalArgumentException("You must verify your account");
+
+        UserDtoCredentials user = repository.findCredentialsByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException(Constants.Errors.USER_NOT_FOUND));
+
+        if (!user.enabled()) {
+            throw new AccountNotVerifiedException(Constants.Exceptions.USER_NOT_ENABLED);
         }
-        
-        return new CustomUserDetails(user.getId(), user.getEmail(), user.getPassword());
+
+        return new CustomUserDetails(user.id(), user.email(), user.password());
     }
 }

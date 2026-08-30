@@ -1,16 +1,22 @@
 package com.appbito.appbito.controllers;
 
-import java.util.Collections;
-import java.util.HashMap;
+import com.appbito.appbito.constants.Constants;
+import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.requests.HabitDtoUpdateBatchRequest;
+import com.appbito.appbito.dtos.responses.HabitDtoResponse;
+import com.appbito.appbito.exceptions.ResourceNotFoundException;
+import com.appbito.appbito.services.HabitService;
+import com.appbito.appbito.utils.AuthUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,118 +26,162 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.appbito.appbito.entities.HabitDTO;
-import com.appbito.appbito.services.HabitService;
-import com.appbito.appbito.services.UserService;
-
-import jakarta.validation.Valid;
-
-@CrossOrigin(originPatterns = {"http://localhost:4200"})
+/**
+ * Habit Controller.
+ */
 @RestController
 @RequestMapping("/api/habits")
+@RequiredArgsConstructor
+@Validated
+@Tag(name = "Habits", description = "Endpoints to habit CRUD")
 public class HabitController {
 
-    @Autowired
-    private HabitService service;
+    private static final String HABIT_NOT_FOUND = Constants.Errors.HABIT_NOT_FOUND;
 
-    @Autowired
-    private UserService userService;
+    private final HabitService service;
 
-    @GetMapping 
-    public List<HabitDTO> list(){
-        return this.service.findAll();
+    /**
+     * method find all.
+     *
+     * @return a list of habitDtoResponse.
+     */
+    @Operation(summary = "Get all habits", description = "Only for dev and tests")
+    @GetMapping
+    public ResponseEntity<List<HabitDtoResponse>> list() {
+        return ResponseEntity.ok(this.service.findAll());
     }
 
+    /**
+     * method find by id.
+     *
+     * @param id habit.
+     * @param authentication auth token.
+     *
+     * @return habitDtoResponse.
+     */
+    @Operation(summary = "Get a habit by id")
     @GetMapping("/{id}")
-    public ResponseEntity<?> byId(@PathVariable Long id){
-        Optional<HabitDTO> habitOptional = this.service.findById(id);
-        if(habitOptional.isPresent()){
-            return ResponseEntity.status(HttpStatus.OK).body(habitOptional.orElseThrow());
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("Error", "Habit not found"));
+    public ResponseEntity<HabitDtoResponse> byId(@PathVariable Long id,
+        Authentication authentication) {
+
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+
+        HabitDtoResponse habitDto = this.service.findByIdAndUserId(id, userId)
+            .orElseThrow(() -> new ResourceNotFoundException(HABIT_NOT_FOUND));
+
+        return ResponseEntity.ok(habitDto);
     }
 
-    @GetMapping("/user/{id}")
-    public ResponseEntity<?> byUserId(@PathVariable Long id){
-        if(this.userService.existsById(id)){
-            return ResponseEntity.status(HttpStatus.OK).body(this.service.findByUserId(id));
-        }
-        return ResponseEntity.notFound().build();
+    /**
+     * method by user id.
+     *
+     * @param authentication auth token.
+     *
+     * @return a list of habitDtoResponse.
+     */
+    @Operation(summary = "Get me habits")
+    @GetMapping("/me")
+    public ResponseEntity<List<HabitDtoResponse>> byUserId(Authentication authentication) {
+
+        Long userId = AuthUtils.getUserIdFromToken(authentication);
+
+        return ResponseEntity.ok(this.service.findByUserId(userId));
     }
 
+    /**
+     * method by today.
+     *
+     * @param authentication auth token.
+     *
+     * @return a list of habitDtoResponse.
+     */
+    @Operation(summary = "Get me habits for today")
     @GetMapping("/today")
-    public List<HabitDTO> byToday(){
-        return this.service.findByToday();
+    public ResponseEntity<List<HabitDtoResponse>> byToday(Authentication authentication) {
+
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
+
+        return ResponseEntity.ok(this.service.findByToday(tokenUserId));
     }
 
+    /**
+     * method create.
+     *
+     * @param habit habitDtoRequest.
+     * @param authentication auth token.
+     *
+     * @return habitDtoResponse.
+     */
+    @Operation(summary = "Create a habit")
     @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody HabitDTO habit, BindingResult result){
-        if(result.hasErrors()){
-            return validation(result);
-        }
+    public ResponseEntity<HabitDtoResponse> create(@Valid @RequestBody HabitDtoRequest habit,
+        Authentication authentication) {
 
-        if(habit.getUserId() == null){
-            return ResponseEntity.badRequest().body(Collections.singletonMap("Error", "User ID is required"));
-        }
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
 
-        try{
-            return ResponseEntity.status(HttpStatus.CREATED).body(this.service.save(habit));
-        } catch(RuntimeException e) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("Error", e.getMessage()));
-        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(this.service.save(habit, tokenUserId));
     }
 
+    /**
+     * method update.
+     *
+     * @param habit habitDtoRequest.
+     * @param id habit.
+     * @param authentication auth token.
+     *
+     * @return habitDtoResponse.
+     */
+    @Operation(summary = "Update a habit by id")
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@Valid @RequestBody HabitDTO habit, BindingResult result, @PathVariable Long id){
-        if(result.hasErrors()){
-            return validation(result);
-        }
+    public ResponseEntity<HabitDtoResponse> update(@Valid @RequestBody HabitDtoRequest habit,
+        @PathVariable Long id, Authentication authentication) {
 
-        if(habit.getUserId() == null){
-            return ResponseEntity.badRequest().body(Collections.singletonMap("Error", "User ID is required"));
-        }
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
 
-        try{
-            Optional<HabitDTO> habitOptional = this.service.update(habit, id);
-            if(habitOptional.isPresent()){
-                return ResponseEntity.ok(habitOptional.orElseThrow());
-            }
-            return ResponseEntity.notFound().build();
-        }catch(RuntimeException e) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("Error", e.getMessage()));
-        }
+        HabitDtoResponse habitDto = this.service.update(habit, id, tokenUserId)
+            .orElseThrow(() -> new ResourceNotFoundException(HABIT_NOT_FOUND));
+
+        return ResponseEntity.ok(habitDto);
     }
 
+    /**
+     * method update batch.
+     *
+     * @param habits list of habitDtoRequest.
+     * @param authentication auth token.
+     *
+     * @return list of habitDtoResponse.
+     */
+    @Operation(summary = "Update a batch of habits")
     @PutMapping("/batch")
-    public ResponseEntity<?> updateBatch(@Valid @RequestBody List<HabitDTO> habits, BindingResult result){
-        if(result.hasErrors()){
-            return validation(result);
-        }
-        return ResponseEntity.ok(this.service.updateBatch(habits));
+    public ResponseEntity<List<HabitDtoResponse>> updateBatch(
+        @Valid @NotEmpty @RequestBody List<HabitDtoUpdateBatchRequest> habits,
+        Authentication authentication) {
 
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
+
+        return ResponseEntity.ok(this.service.updateBatch(habits, tokenUserId));
     }
 
+    /**
+     * method delete.
+     *
+     * @param id habit.
+     * @param authentication auth token.
+     *
+     * @return void responseEntity.
+     */
+    @Operation(summary = "Delete habit by id")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id){
-        Optional<HabitDTO> habitOptional = this.service.findById(id);
-        if(habitOptional.isPresent()){
-            this.service.deleteById(id);
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
+
+        Long tokenUserId = AuthUtils.getUserIdFromToken(authentication);
+
+        if (!this.service.deleteById(id, tokenUserId)) {
+            throw new ResourceNotFoundException(HABIT_NOT_FOUND);
         }
-        return ResponseEntity.notFound().build();
-    }
 
-    @GetMapping("/migrate")
-    public List<HabitDTO> migrate(){
-        return this.service.migrateProgressData();
+        return ResponseEntity.noContent().build();
     }
-
-    private ResponseEntity<?> validation(BindingResult result){
-        Map<String, String> errors = new HashMap<>();
-        result.getFieldErrors().forEach(error -> {
-            errors.put(error.getField(), error.getDefaultMessage());
-        });
-        return ResponseEntity.badRequest().body(errors);
-    }
-
 }
