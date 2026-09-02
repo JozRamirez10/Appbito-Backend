@@ -13,12 +13,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.appbito.appbito.constants.Constants;
 import com.appbito.appbito.dtos.requests.HabitDtoRequest;
+import com.appbito.appbito.dtos.requests.HabitDtoUpdateBatchRequest;
 import com.appbito.appbito.dtos.responses.HabitDtoResponse;
 import com.appbito.appbito.exceptions.ForbiddenAccessException;
 import com.appbito.appbito.services.HabitService;
 import com.appbito.appbito.utils.AuthUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -52,9 +54,11 @@ class HabitControllerTest {
 
     private TestingAuthenticationToken authToken;
 
+    private static final Long HABIT_ID = 100L;
+
     private static final String HABIT_NAME = "Do Yoga";
 
-    private static final Long HABIT_ID = 100L;
+    private static final LocalTime HABIT_HOUR = LocalTime.now();
 
     private static final Long USER_ID = 5L;
 
@@ -345,7 +349,7 @@ class HabitControllerTest {
         when(habitService.updateBatch(anyList(), eq(USER_ID)))
             .thenReturn(List.of(habitResponseMock));
 
-        List<HabitDtoRequest> batchRequest = List.of(habitRequestMock);
+        List<HabitDtoUpdateBatchRequest> batchRequest = List.of(habitDtoUpdateBatchRequest());
         String jsonRequest = objectMapper.writeValueAsString(batchRequest);
 
         mockMvc.perform(
@@ -403,7 +407,7 @@ class HabitControllerTest {
     @Test
     void updateBatchUnauthorized() throws Exception {
 
-        List<HabitDtoRequest> batchRequest = List.of(habitRequestMock);
+        List<HabitDtoUpdateBatchRequest> batchRequest = List.of(habitDtoUpdateBatchRequest());
         String jsonRequest = objectMapper.writeValueAsString(batchRequest);
 
         mockMvc.perform(
@@ -421,7 +425,7 @@ class HabitControllerTest {
         when(habitService.updateBatch(anyList(), eq(USER_ID)))
             .thenThrow(new ForbiddenAccessException());
 
-        List<HabitDtoRequest> batchRequest = List.of(habitRequestMock);
+        List<HabitDtoUpdateBatchRequest> batchRequest = List.of(habitDtoUpdateBatchRequest());
         String jsonRequest = objectMapper.writeValueAsString(batchRequest);
 
         mockMvc.perform(
@@ -485,6 +489,15 @@ class HabitControllerTest {
 
     private HabitDtoRequest habitBadRequest() {
         return HabitDtoRequest.builder().build();
+    }
+
+    private HabitDtoUpdateBatchRequest habitDtoUpdateBatchRequest() {
+        return HabitDtoUpdateBatchRequest.builder()
+        .id(HABIT_ID)
+        .name(HABIT_NAME)
+        .hour(HABIT_HOUR)
+        .days(Set.of(DayOfWeek.MONDAY))
+        .build();
     }
 
 }
